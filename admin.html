@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="db.js"></script>
 <style>
 /* ============================================================
    TOTAL TOOLS · PANEL ADMIN  (Config + Productos)
@@ -306,45 +307,9 @@ input,select,textarea{ font-family:inherit; }
 
 <script>
 /* ============================================================
-   CAPA DE DATOS  (localStorage hoy -> Firebase después)
-   Para migrar: reemplazar read/write por Firestore.
+   CAPA DE DATOS  ->  ahora única y compartida (TTDB, en db.js)
    ============================================================ */
-const DB = (() => {
-  const KEY = "tt_store_v1";
-  let mem = null;
-  function seed(){
-    return {
-      config:{ theme:{ acento:"#f7b500", fondo:"#1a1d23", madera:"#8a5a32", pegboard:"#c7a877" },
-               ubicacionAuto:true, igv:false, negocioWa:"51999999999" },
-      racks:[
-        { id:"r1", nombre:"Eléctricas", pasillo:3, niveles:["alto","medio"], color:"#f7b500" },
-        { id:"r2", nombre:"Manuales",   pasillo:4, niveles:["alto","medio","bajo"], color:"#3b82f6" }
-      ],
-      productos:[
-        { id:"p1", nombre:"Taladro Percutor 650W", marca:"TOTAL", precio:199.90, emoji:"🛠️", foto:"", video:"", desc:"Taladro percutor 650W, velocidad variable y reversa.", rackId:"r1", nivel:"alto" },
-        { id:"p2", nombre:"Amoladora Angular 4½\" 750W", marca:"TOTAL", precio:159.90, emoji:"⚙️", foto:"", video:"", desc:"Amoladora 750W para corte y desbaste.", rackId:"r1", nivel:"alto" },
-        { id:"p3", nombre:"Sierra Circular 1400W", marca:"TOTAL", precio:289.90, emoji:"🪚", foto:"", video:"", desc:"Sierra circular 1400W, disco 7¼\".", rackId:"r1", nivel:"alto" },
-        { id:"p4", nombre:"Juego de Llaves Mixtas 8 pz", marca:"TOTAL", precio:89.90, emoji:"🔧", foto:"", video:"", desc:"8 llaves mixtas acero cromo-vanadio.", rackId:"r1", nivel:"medio" },
-        { id:"p5", nombre:"Set Destornilladores 6 pz", marca:"TOTAL", precio:34.90, emoji:"🪛", foto:"", video:"", desc:"6 destornilladores con puntas imantadas.", rackId:"r1", nivel:"medio" },
-        { id:"p6", nombre:"Cinta Métrica 5 m", marca:"TOTAL", precio:19.90, emoji:"📏", foto:"", video:"", desc:"Wincha 5 m con freno automático.", rackId:"r1", nivel:"medio" }
-      ]
-    };
-  }
-  function read(){
-    if(mem) return mem;
-    try{ const raw = localStorage.getItem(KEY); if(raw){ mem = JSON.parse(raw); return mem; } }catch(e){}
-    mem = seed(); write(); return mem;
-  }
-  function write(){ try{ localStorage.setItem(KEY, JSON.stringify(mem)); }catch(e){ /* preview sin storage: queda en memoria */ } }
-  return {
-    all:()=>read(),
-    config:()=>read().config,
-    racks:()=>read().racks,
-    productos:()=>read().productos,
-    save:()=>write(),
-    uid:(p)=> p + Math.random().toString(36).slice(2,8)
-  };
-})();
+const DB = window.TTDB;
 
 const $ = s => document.querySelector(s);
 const soles = n => "S/ " + (Number(n)||0).toFixed(2);
