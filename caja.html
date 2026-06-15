@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<meta name="theme-color" content="#15171c" />
+<title>Total Tools · Caja</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=VT323&display=swap" rel="stylesheet" />
+<style>
+/* ============================================================
+   TOTAL TOOLS · CAJA  (checkout 2D, sin render pesado)
+   Escáner + POS + pago (efectivo/Yape/tarjeta) + boleta.
+   ============================================================ */
+:root{
+  --concreto:#15171c; --concreto-2:#20242c; --panel:#262b34;
+  --amarillo:#f7b500; --amarillo-2:#ffd454;
+  --lcd:#7CFFB0; --lcd-bg:#0a1f14;
+  --yape:#742284; --yape-2:#a13bbf;
+  --ok:#34d399; --rojo:#ef4444;
+  --txt:#f4efe6; --mute:#a7a294; --madera:#8a5a32;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  font-family: system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+*{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html,body{ margin:0; min-height:100%; background:
+  radial-gradient(120% 60% at 50% 0%, #2a2f38 0%, var(--concreto) 60%); color:var(--txt); }
+button{ font-family:inherit; cursor:pointer; border:none; color:inherit; }
+.signage{ font-family:"Anton",system-ui,sans-serif; letter-spacing:.5px; text-transform:uppercase; }
+.lcd-font{ font-family:"VT323",ui-monospace,monospace; }
+.mono{ font-family:ui-monospace,"SF Mono",Menlo,monospace; }
+
+/* Header */
+.head{ display:flex; align-items:center; gap:12px; padding:16px 16px 8px; }
+.head .logo{ width:42px;height:42px;border-radius:11px;background:var(--amarillo);color:#15171c;
+  display:grid;place-items:center;font-size:22px;box-shadow:0 2px 0 #0006; }
+.head .t{ flex:1;line-height:1 }
+.head .t b{ font-size:18px } .head .t span{ display:block;font-size:11px;color:var(--mute);letter-spacing:1.5px;margin-top:3px }
+.head .back{ background:var(--concreto-2);border:1px solid #ffffff14;border-radius:11px;padding:9px 12px;font-size:13px;color:var(--mute) }
+
+.wrap{ max-width:520px; margin:0 auto; padding:0 16px 40px; }
+
+/* ---------- Pantalla POS (LCD) ---------- */
+.pos{ background:linear-gradient(180deg,#10130f,var(--lcd-bg)); border:2px solid #143524; border-radius:16px;
+  padding:14px 18px; box-shadow:inset 0 0 30px #0b3a22, 0 8px 20px #0008; margin:10px 0 16px; }
+.pos .label{ font-size:14px; color:#3f8c63; letter-spacing:3px; }
+.pos .total{ font-size:62px; line-height:.9; color:var(--lcd); text-shadow:0 0 12px #34d39988; }
+.pos .sub{ display:flex; justify-content:space-between; color:#4ea87a; font-size:18px; margin-top:6px; }
+
+/* ---------- Escena de mostrador ---------- */
+.counter{ position:relative; background:linear-gradient(180deg,#2c313b,#23272f);
+  border:1px solid #ffffff10; border-radius:18px; padding:16px 12px 14px; overflow:hidden; box-shadow:0 10px 26px #0007; }
+.counter .scanner{ position:absolute; left:0; right:0; top:0; height:64px;
+  background:linear-gradient(180deg,#1118 ,#0000); border-bottom:2px solid #ff3b3b55; }
+.counter .laser{ position:absolute; left:0; right:0; top:62px; height:3px;
+  background:linear-gradient(90deg,#ff3b3b00,#ff3b3b,#ff3b3b00); box-shadow:0 0 12px #ff3b3b; opacity:.9;
+  animation:laser 1.4s ease-in-out infinite; }
+@keyframes laser{ 0%,100%{ transform:translateY(0); opacity:.5 } 50%{ transform:translateY(3px); opacity:1 } }
+.belt{ display:flex; gap:10px; flex-wrap:wrap; margin-top:54px; }
+.item{ display:flex; flex-direction:column; align-items:center; gap:4px; width:64px; transition:transform .25s, opacity .25s; }
+.item .box{ width:56px;height:56px;border-radius:12px;background:linear-gradient(160deg,#3a414d,#272b33);
+  border:1px solid #ffffff12; display:grid; place-items:center; font-size:30px; position:relative; overflow:hidden; }
+.item .box img{ width:100%;height:100%;object-fit:cover }
+.item .q{ position:absolute; top:-4px; right:-4px; background:var(--amarillo); color:#15171c; font-size:11px; font-weight:800;
+  min-width:18px;height:18px;border-radius:9px;display:grid;place-items:center;border:2px solid #23272f }
+.item .pr{ font-size:11px; color:var(--mute) }
+.item.scanning .box{ box-shadow:0 0 0 3px #ff3b3b, 0 0 18px #ff3b3b99; transform:translateY(-4px) }
+.item.done .box{ box-shadow:0 0 0 2px var(--ok) }
+.item.done .box::after{ content:"✓"; position:absolute; inset:auto 2px 2px auto; font-size:13px; color:var(--ok) }
+.counter .belt-stripes{ position:absolute; left:0; right:0; bottom:0; height:10px;
+  background:repeating-linear-gradient(90deg,#0000 0 16px,#ffffff10 16px 20px); }
+
+/* ---------- Panel de acción ---------- */
+.action{ margin-top:16px; }
+.scanmsg{ text-align:center; color:var(--mute); font-size:14px; padding:8px 0 14px; }
+.btn{ width:100%; border-radius:14px; padding:16px; font-size:17px; font-weight:800; }
+.btn.amarillo{ background:var(--amarillo); color:#15171c; box-shadow:0 4px 0 #0005; }
+.btn.amarillo:active{ transform:translateY(2px); box-shadow:0 2px 0 #0005; }
+.btn.ghost{ background:var(--concreto-2); border:1px solid #ffffff18; color:var(--txt); }
+.skip{ display:block; margin:10px auto 0; background:none; color:var(--mute); font-size:13px; text-decoration:underline; }
+
+.pays{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+.pay{ background:var(--panel); border:1px solid #ffffff14; border-radius:16px; padding:16px 8px; text-align:center; }
+.pay .e{ font-size:32px } .pay b{ display:block; font-size:13px; margin-top:6px }
+.pay.efectivo{ border-color:#3a7d2c } .pay.yape{ border-color:var(--yape-2) } .pay.tarjeta{ border-color:#2a64b0 }
+.pay:active{ transform:scale(.96) }
+
+/* Flujo de método */
+.flow{ background:var(--panel); border:1px solid #ffffff14; border-radius:16px; padding:18px; margin-top:14px; }
+.flow h3{ margin:0 0 14px; font-size:16px; display:flex; align-items:center; gap:8px }
+.flow .big-amt{ font-size:34px; color:var(--amarillo); text-align:center; margin:6px 0 14px }
+.cashin{ width:100%; background:var(--concreto); border:1px solid #ffffff18; border-radius:12px; color:var(--txt);
+  font-size:26px; text-align:center; padding:14px; outline:none; }
+.cash-quick{ display:flex; gap:8px; margin:10px 0 14px; flex-wrap:wrap }
+.cash-quick button{ flex:1; background:var(--concreto); border:1px solid #ffffff18; border-radius:10px; padding:11px; font-size:15px; color:var(--txt) }
+.vuelto{ text-align:center; font-size:15px; color:var(--mute); margin-top:12px }
+.vuelto b{ color:var(--ok); font-size:30px; display:block; margin-top:4px }
+
+/* Yape */
+.qr{ width:180px; height:180px; margin:0 auto 12px; background:#fff; border-radius:14px; padding:12px;
+  display:grid; grid-template-columns:repeat(13,1fr); gap:2px; }
+.qr i{ background:#15171c; border-radius:1px } .qr i.off{ background:#fff }
+.yape-card{ background:linear-gradient(160deg,var(--yape),var(--yape-2)); border-radius:16px; padding:16px; text-align:center; }
+.yape-card .num{ font-size:24px; letter-spacing:2px; margin-top:6px }
+.yape-card .name{ font-size:13px; opacity:.85 }
+
+/* Tarjeta */
+.terminal{ text-align:center; padding:10px 0 }
+.terminal .spin{ width:46px;height:46px;border-radius:50%;border:4px solid #ffffff22;border-top-color:var(--amarillo);
+  margin:10px auto; animation:spin 1s linear infinite }
+@keyframes spin{ to{ transform:rotate(360deg) } }
+.approved{ color:var(--ok); font-size:20px; font-weight:800 }
+
+/* ---------- Boleta ---------- */
+.scrim{ position:fixed; inset:0; z-index:60; background:#000d; opacity:0; pointer-events:none; transition:opacity .3s }
+.scrim.open{ opacity:1; pointer-events:auto }
+.receipt-stage{ position:fixed; inset:0; z-index:61; display:grid; place-items:start center; padding:24px 16px;
+  overflow:auto; pointer-events:none }
+.receipt{ pointer-events:auto; width:300px; max-width:92vw; background:#fdfcf7; color:#1a1a1a; border-radius:4px;
+  padding:22px 20px 14px; box-shadow:0 20px 50px #000a; transform:translateY(-120%); transition:transform .55s cubic-bezier(.2,.9,.2,1);
+  font-family:ui-monospace,"SF Mono",Menlo,monospace; font-size:13px;
+  mask-image:radial-gradient(circle 6px at 6px 100%, #0000 98%, #000 100%) repeat-x bottom/14px 14px,
+             radial-gradient(circle 6px at 6px 0, #0000 98%, #000 100%) repeat-x top/14px 14px,
+             linear-gradient(#000 0 0); -webkit-mask-image:inherit; }
+.receipt.show{ transform:translateY(0) }
+.receipt .r-top{ text-align:center; border-bottom:1px dashed #bbb; padding-bottom:10px; margin-bottom:10px }
+.receipt .r-top .b{ font-family:"Anton",sans-serif; font-size:22px; letter-spacing:1px }
+.receipt .r-top small{ color:#666; display:block; font-size:11px; margin-top:2px }
+.receipt .r-line{ display:flex; justify-content:space-between; gap:8px; margin:4px 0 }
+.receipt .r-line .nm{ flex:1 } .receipt .r-tot{ border-top:1px dashed #bbb; margin-top:10px; padding-top:10px }
+.receipt .r-tot .big{ display:flex; justify-content:space-between; font-size:18px; font-weight:800 }
+.receipt .r-foot{ text-align:center; border-top:1px dashed #bbb; margin-top:12px; padding-top:10px; color:#444; font-size:11px }
+.receipt-actions{ pointer-events:auto; width:300px; max-width:92vw; margin-top:14px; display:flex; flex-direction:column; gap:10px }
+
+#toast{ position:fixed;left:50%;bottom:30px;transform:translateX(-50%);z-index:90;background:#000e;color:#fff;
+  padding:13px 20px;border-radius:13px;font-size:14px;box-shadow:0 8px 24px #000a;opacity:0;transition:opacity .25s;pointer-events:none }
+#toast.show{ opacity:1 }
+
+@media (prefers-reduced-motion: reduce){ *{ animation:none!important; transition:none!important } }
+@media print{
+  body *{ visibility:hidden } .receipt-stage,.receipt-stage *{ visibility:visible }
+  .receipt-stage{ position:absolute; inset:0; padding:0 } .receipt{ transform:none!important; box-shadow:none; width:auto }
+  .receipt-actions,.scrim{ display:none!important }
+}
+</style>
+</head>
+<body>
+
+<header class="head">
+  <div class="logo signage">T</div>
+  <div class="t"><b class="signage">CAJA</b><span>TOTAL TOOLS</span></div>
+  <a class="back" href="index.html">← Tienda</a>
+</header>
+
+<div class="wrap">
+  <!-- Pantalla POS -->
+  <div class="pos">
+    <div class="label lcd-font">TOTAL A PAGAR</div>
+    <div class="total lcd-font" id="posTotal">S/ 0.00</div>
+    <div class="sub lcd-font"><span id="posItems">0 items</span><span id="posIgv"></span></div>
+  </div>
+
+  <!-- Mostrador / escáner -->
+  <div class="counter">
+    <div class="scanner"></div>
+    <div class="laser"></div>
+    <div class="belt" id="belt"></div>
+    <div class="belt-stripes"></div>
+  </div>
+
+  <!-- Acción -->
+  <div class="action" id="action">
+    <div class="scanmsg" id="scanMsg">Pasando productos por el escáner…</div>
+    <button class="skip" id="skipScan">Saltar y pagar →</button>
+  </div>
+</div>
+
+<!-- Boleta -->
+<div class="scrim" id="scrim"></div>
+<div class="receipt-stage" id="receiptStage" style="display:none">
+  <div class="receipt" id="receipt"></div>
+  <div class="receipt-actions">
+    <button class="btn amarillo" id="rWa">📲 Enviar boleta por WhatsApp</button>
+    <button class="btn ghost" id="rPrint">🖨️ Imprimir</button>
+    <button class="btn ghost" id="rNew">🛒 Nueva venta</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ============================================================
+   DATOS: carrito + config (desde localStorage; demo si vacío)
+   ============================================================ */
+function loadCfg(){
+  try{ const raw=localStorage.getItem("tt_store_v1"); if(raw){ const d=JSON.parse(raw); if(d.config) return d.config; } }catch(e){}
+  return { igv:false, negocioWa:"51999999999" };
+}
+function demoCart(){
+  return [
+    { id:"p1", nombre:"Taladro Percutor 650W", emoji:"🛠️", foto:"", precio:199.90, qty:1 },
+    { id:"p4", nombre:"Juego de Llaves Mixtas 8 pz", emoji:"🔧", foto:"", precio:89.90, qty:1 },
+    { id:"p5", nombre:"Set Destornilladores 6 pz", emoji:"🪛", foto:"", precio:34.90, qty:2 },
+    { id:"p6", nombre:"Cinta Métrica 5 m", emoji:"📏", foto:"", precio:19.90, qty:1 }
+  ];
+}
+function loadCart(){
+  try{ const raw=localStorage.getItem("tt_cart_v1"); if(raw){ const c=JSON.parse(raw); if(Array.isArray(c)&&c.length) return c; } }catch(e){}
+  return demoCart();
+}
+
+const CFG = loadCfg();
+const CART = loadCart();
+const $ = s => document.querySelector(s);
+const soles = n => "S/ " + (Number(n)||0).toFixed(2);
+const SUBTOTAL = CART.reduce((s,i)=> s + i.precio*i.qty, 0);
+let toastTimer=null;
+function toast(t){ const e=$("#toast"); e.textContent=t; e.classList.add("show");
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>e.classList.remove("show"),2400); }
+
+/* ---------- Sonidos (Web Audio, sin archivos) ---------- */
+let actx=null;
+function ac(){ actx = actx || new (window.AudioContext||window.webkitAudioContext)(); return actx; }
+function beep(){ try{ const a=ac(),o=a.createOscillator(),g=a.createGain();
+  o.type="square"; o.frequency.setValueAtTime(1180,a.currentTime);
+  g.gain.setValueAtTime(.08,a.currentTime); g.gain.exponentialRampToValueAtTime(.0001,a.currentTime+.08);
+  o.connect(g); g.connect(a.destination); o.start(); o.stop(a.currentTime+.08); }catch(e){} }
+function chaching(){ try{ const a=ac(); [880,1320].forEach((f,i)=>{ const o=a.createOscillator(),g=a.createGain();
+  o.type="triangle"; o.frequency.value=f; const t=a.currentTime+i*.09;
+  g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(.14,t+.02); g.gain.exponentialRampToValueAtTime(.0001,t+.4);
+  o.connect(g); g.connect(a.destination); o.start(t); o.stop(t+.4); }); }catch(e){} }
+
+/* ============================================================
+   ESCÁNER: pasa los productos y sube el total
+   ============================================================ */
+const belt = $("#belt");
+CART.forEach(it=>{
+  const el=document.createElement("div"); el.className="item"; el.dataset.id=it.id;
+  el.innerHTML = `<div class="box">${it.foto?`<img src="${it.foto}">`:it.emoji}${it.qty>1?`<span class="q">${it.qty}</span>`:""}</div>
+                  <div class="pr">${soles(it.precio*it.qty)}</div>`;
+  belt.appendChild(el);
+});
+$("#posItems").textContent = CART.reduce((n,i)=>n+i.qty,0) + " items";
+
+let running=0, idx=0, scanTimer=null, scanned=false;
+function setTotal(v){ $("#posTotal").textContent = soles(v);
+  if(CFG.igv){ const base=v/1.18; $("#posIgv").textContent="IGV "+soles(v-base); } }
+function scanStep(){
+  const items=[...belt.children];
+  items.forEach(x=>x.classList.remove("scanning"));
+  if(idx>=CART.length){ finishScan(); return; }
+  const it=CART[idx], el=items[idx];
+  el.classList.add("scanning"); beep();
+  running += it.precio*it.qty; setTotal(running);
+  setTimeout(()=>{ el.classList.remove("scanning"); el.classList.add("done"); }, 240);
+  idx++; scanTimer=setTimeout(scanStep, 480);
+}
+function finishScan(){
+  if(scanned) return; scanned=true; clearTimeout(scanTimer);
+  running=SUBTOTAL; setTotal(running);
+  [...belt.children].forEach(x=>{ x.classList.remove("scanning"); x.classList.add("done"); });
+  showPay();
+}
+$("#skipScan").addEventListener("click", finishScan);
+setTimeout(scanStep, 600);
+
+/* ============================================================
+   PAGO
+   ============================================================ */
+function showPay(){
+  $("#action").innerHTML =
+    `<div class="scanmsg">Elige el método de pago</div>
+     <div class="pays">
+       <button class="pay efectivo" data-m="efectivo"><div class="e">💵</div><b>Efectivo</b></button>
+       <button class="pay yape" data-m="yape"><div class="e">📲</div><b>Yape</b></button>
+       <button class="pay tarjeta" data-m="tarjeta"><div class="e">💳</div><b>Tarjeta</b></button>
+     </div>
+     <div id="flow"></div>`;
+  $("#action").querySelectorAll(".pay").forEach(b=> b.addEventListener("click", ()=>openFlow(b.dataset.m)));
+}
+
+let metodo=null, datosPago={};
+function openFlow(m){
+  metodo=m; datosPago={};
+  if(m==="efectivo") flowEfectivo();
+  if(m==="yape") flowYape();
+  if(m==="tarjeta") flowTarjeta();
+}
+
+/* Efectivo: vuelto */
+function flowEfectivo(){
+  $("#flow").innerHTML =
+    `<div class="flow"><h3>💵 Efectivo</h3>
+      <div class="big-amt">${soles(SUBTOTAL)}</div>
+      <input class="cashin" id="cashIn" inputmode="decimal" placeholder="¿Con cuánto paga?" />
+      <div class="cash-quick" id="cashQuick"></div>
+      <div class="vuelto" id="vuelto">Vuelto<b>S/ 0.00</b></div>
+      <button class="btn amarillo" id="cobrar" style="margin-top:14px">Cobrar</button>
+     </div>`;
+  const sugeridos = [Math.ceil(SUBTOTAL/10)*10, Math.ceil(SUBTOTAL/50)*50, Math.ceil(SUBTOTAL/100)*100]
+    .filter((v,i,a)=> v>=SUBTOTAL && a.indexOf(v)===i);
+  $("#cashQuick").innerHTML = sugeridos.map(v=>`<button data-v="${v}">${soles(v)}</button>`).join("");
+  const calc=()=>{ const pago=parseFloat($("#cashIn").value)||0; const v=pago-SUBTOTAL;
+    $("#vuelto").innerHTML = `Vuelto<b style="color:${v<0?'var(--rojo)':'var(--ok)'}">${soles(Math.max(0,v))}</b>`; return v; };
+  $("#cashIn").addEventListener("input", calc);
+  $("#cashQuick").querySelectorAll("button").forEach(b=> b.addEventListener("click",()=>{ $("#cashIn").value=b.dataset.v; calc(); }));
+  $("#cobrar").addEventListener("click", ()=>{
+    const pago=parseFloat($("#cashIn").value)||0; if(pago<SUBTOTAL) return toast("El monto no alcanza");
+    datosPago={ metodo:"Efectivo", pago, vuelto:pago-SUBTOTAL }; chaching(); finalizar();
+  });
+}
+
+/* Yape: QR + confirmar (conecta con Yapeclock) */
+function flowYape(){
+  $("#flow").innerHTML =
+    `<div class="flow"><h3>📲 Yape</h3>
+      <div class="qr" id="qr"></div>
+      <div class="yape-card">
+        <div class="name">Yapea a</div>
+        <div class="num mono">${CFG.negocioWa||"933724178"}</div>
+        <div class="big-amt" style="color:#fff;margin:8px 0 0">${soles(SUBTOTAL)}</div>
+      </div>
+      <button class="btn amarillo" id="yapeOk" style="margin-top:14px">Confirmar pago Yape</button>
+      <div class="scanmsg" style="padding-top:10px">Se confirmará automático cuando llegue la alerta (Yapeclock).</div>
+     </div>`;
+  // QR falso determinístico (placeholder; el real lo genera tu sistema)
+  const seed=(CFG.negocioWa||"933724178")+SUBTOTAL; let h=0; for(const c of seed) h=(h*31+c.charCodeAt(0))>>>0;
+  let cells=""; for(let i=0;i<169;i++){ h=(h*1103515245+12345)>>>0; cells+=`<i class="${(h>>7&1)?'':'off'}"></i>`; }
+  $("#qr").innerHTML=cells;
+  $("#yapeOk").addEventListener("click", ()=>{ datosPago={ metodo:"Yape", pago:SUBTOTAL, vuelto:0 }; chaching(); finalizar(); });
+}
+
+/* Tarjeta: simula terminal POS */
+function flowTarjeta(){
+  $("#flow").innerHTML =
+    `<div class="flow"><h3>💳 Tarjeta</h3>
+      <div class="terminal" id="term">
+        <div>Acerca o inserta la tarjeta…</div>
+        <div class="big-amt">${soles(SUBTOTAL)}</div>
+        <button class="btn amarillo" id="pasar">Pasar tarjeta</button>
+      </div></div>`;
+  $("#pasar").addEventListener("click", ()=>{
+    $("#term").innerHTML = `<div class="spin"></div><div>Procesando pago…</div>`;
+    setTimeout(()=>{ $("#term").innerHTML = `<div class="approved">✓ Aprobado</div>`; chaching();
+      datosPago={ metodo:"Tarjeta", pago:SUBTOTAL, vuelto:0 }; setTimeout(finalizar, 700); }, 1500);
+  });
+}
+
+/* ============================================================
+   BOLETA
+   ============================================================ */
+function boletaNro(){ const d=new Date(); return "B001-"+String(d.getHours()).padStart(2,"0")+String(d.getMinutes()).padStart(2,"0")+String(d.getSeconds()).padStart(2,"0"); }
+let NRO="", FECHA="";
+function finalizar(){
+  NRO=boletaNro(); FECHA=new Date().toLocaleString("es-PE",{ dateStyle:"short", timeStyle:"short" });
+  const base = CFG.igv ? SUBTOTAL/1.18 : SUBTOTAL;
+  const igv  = CFG.igv ? SUBTOTAL-base : 0;
+  $("#receipt").innerHTML =
+    `<div class="r-top"><div class="b">TOTAL TOOLS</div><small>Ferretería · ${CFG.negocioWa||""}</small>
+       <small>Boleta ${NRO} · ${FECHA}</small></div>
+     ${CART.map(i=>`<div class="r-line"><span class="nm">${i.qty}x ${i.nombre}</span><span>${soles(i.precio*i.qty)}</span></div>`).join("")}
+     <div class="r-tot">
+       ${CFG.igv?`<div class="r-line"><span>Op. gravada</span><span>${soles(base)}</span></div>
+                  <div class="r-line"><span>IGV (18%)</span><span>${soles(igv)}</span></div>`:""}
+       <div class="big"><span>TOTAL</span><span>${soles(SUBTOTAL)}</span></div>
+       <div class="r-line" style="margin-top:8px"><span>Pago (${datosPago.metodo})</span><span>${soles(datosPago.pago)}</span></div>
+       ${datosPago.vuelto>0?`<div class="r-line"><span>Vuelto</span><span>${soles(datosPago.vuelto)}</span></div>`:""}
+     </div>
+     <div class="r-foot">¡Gracias por su compra!<br>Vuelva pronto 🛠️</div>`;
+  $("#scrim").classList.add("open"); $("#receiptStage").style.display="grid";
+  requestAnimationFrame(()=> $("#receipt").classList.add("show"));
+}
+
+function waBoleta(){
+  let m = `🧾 *Boleta ${NRO}* — Total Tools%0A${FECHA}%0A%0A`;
+  CART.forEach(i=> m += `• ${i.qty}x ${i.nombre} — ${soles(i.precio*i.qty)}%0A`);
+  m += `%0A*Total: ${soles(SUBTOTAL)}*%0APago: ${datosPago.metodo}`;
+  if(datosPago.vuelto>0) m += `%0AVuelto: ${soles(datosPago.vuelto)}`;
+  window.open("https://wa.me/"+(CFG.negocioWa||"51999999999")+"?text="+m, "_blank");
+}
+$("#rWa").addEventListener("click", waBoleta);
+$("#rPrint").addEventListener("click", ()=> window.print());
+$("#rNew").addEventListener("click", ()=>{
+  try{ localStorage.removeItem("tt_cart_v1"); }catch(e){}
+  window.location.href="index.html";
+});
+
+setTotal(0);
+</script>
+</body>
+</html>
