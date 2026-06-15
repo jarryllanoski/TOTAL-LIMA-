@@ -78,7 +78,7 @@ button{ font-family:inherit; cursor:pointer; border:none; }
 .walk-hint.hide{ opacity:0; pointer-events:none; }
 
 /* Actores */
-.actors{ position:absolute; left:50%; top:55%; transform:translate(-50%,-100%); z-index:20; display:flex; align-items:flex-end; gap:2px; pointer-events:none; }
+.actors{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); z-index:20; display:flex; align-items:flex-end; gap:2px; pointer-events:none; }
 .player,.advisor{ position:relative; display:flex; align-items:flex-end; pointer-events:auto; cursor:pointer; }
 .advisor{ margin-left:12px; }
 .player .cart{ font-size:28px; margin-left:-4px; filter:drop-shadow(0 6px 5px #0008); }
@@ -195,7 +195,7 @@ button{ font-family:inherit; cursor:pointer; border:none; }
   </div>
 </div>
 
-<div class="walk-hint" id="walkHint">👆 Arrastra para caminar · toca un producto para verlo</div>
+<div class="walk-hint" id="walkHint">🚶 Pisa el pasillo y arrastra para caminar · pisa una góndola para mover sus herramientas</div>
 
 <button class="cart-fab" id="cartFab" aria-label="Ver carrito">🛒<span class="badge" id="cartBadge">0</span></button>
 
@@ -252,9 +252,12 @@ function buildStore(){
     stand.innerHTML=`<div class="stand-sign signage">Pasillo ${String(rack.pasillo).padStart(2,"0")} · ${rack.nombre}</div>`;
     if(!prods.length){ stand.innerHTML+=`<div class="stand-empty">— estante vacío · agrega productos en Admin —</div>`; }
     else{
+      const sc=document.createElement("div"); sc.className="stand-scroll";
       chunk(prods,3).forEach(fila=>{ const row=document.createElement("div"); row.className="shelf-row";
         fila.forEach(p=>row.appendChild(productCard(p))); const ledge=document.createElement("div"); ledge.className="ledge";
-        stand.appendChild(row); stand.appendChild(ledge); });
+        sc.appendChild(row); sc.appendChild(ledge); });
+      stand.appendChild(sc);
+      if(prods.length>3){ const h=document.createElement("div"); h.className="stand-scroll-hint"; h.textContent="desliza ↕↔"; stand.appendChild(h); }
     }
     grid.appendChild(stand);
   });
@@ -265,14 +268,12 @@ const stands=[...grid.querySelectorAll(".stand")];
 /* ====== Motor de cámara con colisión (solo pasillos) ====== */
 const actors=document.getElementById("actors");
 const sectionName=document.getElementById("sectionName"), pasilloLabel=document.getElementById("pasilloLabel");
-let camX=0, camY=0, stageW=0, stageH=0, gridW=0, gridH=0, rects=[], moved=false, walkTimer=null, anchorY=0;
+let camX=0, camY=0, stageW=0, stageH=0, gridW=0, gridH=0, rects=[], moved=false, walkTimer=null;
 const MARGIN=26;
 
 function measure(){
   stageW=world.clientWidth; stageH=world.clientHeight;
   gridW=grid.scrollWidth; gridH=grid.scrollHeight;
-  anchorY = stageH * (window.innerWidth<=700 ? 0.80 : 0.58);   // en celular, personaje bien abajo
-  actors.style.top = anchorY + "px";
   rects=stands.map(s=>({x:s.offsetLeft,y:s.offsetTop,w:s.offsetWidth,h:s.offsetHeight}));
 }
 function resolveCollision(x,y){
@@ -289,7 +290,7 @@ function setCam(x,y,collide){
   if(collide!==false){ [x,y]=resolveCollision(x,y); }
   camX=Math.max(20,Math.min(Math.max(20,gridW-20),x));
   camY=Math.max(20,Math.min(Math.max(20,gridH-20),y));
-  grid.style.transform=`translate(${Math.round(stageW/2-camX)}px,${Math.round(anchorY-camY)}px)`;
+  grid.style.transform=`translate(${Math.round(stageW/2-camX)}px,${Math.round(stageH/2-camY)}px)`;
 }
 function walk(){ actors.classList.add("walking"); clearTimeout(walkTimer); walkTimer=setTimeout(()=>actors.classList.remove("walking"),150); }
 function updateBanner(){ if(!rects.length) return; let bi=0,bd=1e15;
@@ -304,22 +305,26 @@ window.addEventListener("resize", ()=>{ measure(); setCam(camX,camY,false); });
 let dragMode=null, start=null;
 function pointFromEvent(e){ const t=e.touches?e.touches[0]:e; return {x:t.clientX,y:t.clientY}; }
 function down(e){
+  const panel=e.target.closest(".stand-scroll");
   moved=false;
+  if(panel){ const p=pointFromEvent(e); dragMode={t:"panel",el:panel,sl:panel.scrollLeft,st:panel.scrollTop}; start=p; return; }
   if(e.target.closest(".actors")) { dragMode=null; return; }
   const p=pointFromEvent(e); dragMode={t:"cam",cx:camX,cy:camY}; start=p; world.classList.add("grabbing");
+  if(e.cancelable && e.touches) e.preventDefault();
 }
 function move(e){
   if(!dragMode||!start) return;
   const p=pointFromEvent(e); const dx=p.x-start.x, dy=p.y-start.y;
   if(Math.abs(dx)>4||Math.abs(dy)>4) moved=true;
-  setCam(dragMode.cx-dx, dragMode.cy-dy); walk(); updateBanner();
+  if(dragMode.t==="panel"){ dragMode.el.scrollLeft=dragMode.sl-dx; dragMode.el.scrollTop=dragMode.st-dy; }
+  else{ setCam(dragMode.cx-dx, dragMode.cy-dy); walk(); updateBanner(); }
   if(e.cancelable && e.touches) e.preventDefault();
 }
 function up(){ dragMode=null; start=null; world.classList.remove("grabbing"); }
 world.addEventListener("mousedown", down); window.addEventListener("mousemove", move); window.addEventListener("mouseup", up);
 world.addEventListener("touchstart", down, {passive:false}); world.addEventListener("touchmove", move, {passive:false}); world.addEventListener("touchend", up);
 
-world.addEventListener("wheel", e=>{ if(e.shiftKey) setCam(camX+e.deltaY,camY); else setCam(camX,camY+e.deltaY); walk(); updateBanner(); e.preventDefault(); }, {passive:false});
+world.addEventListener("wheel", e=>{ if(e.target.closest(".stand-scroll")) return; if(e.shiftKey) setCam(camX+e.deltaY,camY); else setCam(camX,camY+e.deltaY); walk(); updateBanner(); e.preventDefault(); }, {passive:false});
 window.addEventListener("keydown", e=>{ const k=e.key.toLowerCase(); let dx=0,dy=0;
   if(k==="arrowright"||k==="d") dx=40; if(k==="arrowleft"||k==="a") dx=-40; if(k==="arrowdown"||k==="s") dy=40; if(k==="arrowup"||k==="w") dy=-40;
   if(dx||dy){ setCam(camX+dx,camY+dy); walk(); updateBanner(); } });
