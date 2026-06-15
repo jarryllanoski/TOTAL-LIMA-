@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#0b0e13" />
+<title>Total Tools · Panel Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+/* ============================================================
+   TOTAL TOOLS · PANEL ADMIN  (Config + Productos)
+   Estilo dashboard oscuro. Sin build, sin MutationObserver.
+   Datos en localStorage -> migrables a Firebase.
+   ============================================================ */
+:root{
+  --bg:#0b0e13; --bg2:#10141b; --card:#161b24; --card2:#1b212c; --border:#262d3a;
+  --txt:#e6edf3; --mute:#8b949e;
+  --blue:#3b82f6; --green:#22c55e; --orange:#fb923c; --purple:#a855f7;
+  --red:#ef4444; --yellow:#f5c518;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+*{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body{ margin:0; background:var(--bg); color:var(--txt); padding-bottom:40px; }
+button{ font-family:inherit; cursor:pointer; border:none; color:inherit; }
+input,select,textarea{ font-family:inherit; }
+.signage{ font-family:"Anton",system-ui,sans-serif; letter-spacing:.5px; }
+.mono{ font-family:ui-monospace,"SF Mono","Roboto Mono",Menlo,monospace; }
+
+/* ---------- Header ---------- */
+.head{ display:flex; align-items:center; gap:12px; padding:16px 14px 12px; }
+.head .ico{ width:48px; height:48px; border-radius:12px; background:var(--green);
+  display:grid; place-items:center; font-size:26px; box-shadow:0 2px 0 #0007; }
+.head .ttl{ flex:1; line-height:1; }
+.head .ttl b{ font-size:22px; }
+.head .ttl span{ display:block; font-size:12px; color:var(--mute); letter-spacing:1px; margin-top:3px; }
+.head .live{ background:#16321f; color:var(--green); border:1px solid #1f5132;
+  padding:9px 12px; border-radius:11px; font-size:13px; font-weight:700; display:flex; gap:6px; align-items:center; }
+
+/* ---------- Tabs ---------- */
+.tabs{ display:flex; gap:6px; padding:0 14px; border-bottom:1px solid var(--border); }
+.tab{ background:none; padding:12px 14px; font-size:16px; color:var(--mute);
+  border-bottom:3px solid transparent; margin-bottom:-1px; display:flex; align-items:center; gap:8px; }
+.tab.active{ color:var(--blue); border-bottom-color:var(--blue); }
+.panel{ display:none; padding:14px; }
+.panel.active{ display:block; }
+
+/* ---------- Stat cards ---------- */
+.stats{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px; }
+.stat{ background:var(--card); border:1px solid var(--border); border-radius:16px; padding:18px 16px; }
+.stat .n{ font-size:42px; line-height:.85; }
+.stat .l{ font-size:13px; color:var(--mute); margin-top:8px; display:flex; align-items:center; gap:6px; }
+.n.green{color:var(--green)} .n.orange{color:var(--orange)} .n.blue{color:var(--blue)} .n.purple{color:var(--purple)}
+
+/* ---------- Card / sección ---------- */
+.box{ background:var(--card); border:1px solid var(--border); border-radius:16px; padding:14px; margin-bottom:14px; }
+.box > h3{ margin:0 0 12px; font-size:14px; color:var(--mute); text-transform:uppercase; letter-spacing:1px;
+  display:flex; align-items:center; gap:8px; }
+.box > h3 .bar{ width:4px; height:18px; border-radius:3px; background:var(--blue); }
+
+/* Colores config */
+.colors{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.color-field{ display:flex; align-items:center; gap:10px; background:var(--bg2);
+  border:1px solid var(--border); border-radius:12px; padding:8px 10px; }
+.color-field input[type=color]{ width:40px; height:40px; border:none; background:none; border-radius:8px; padding:0; }
+.color-field .cl{ font-size:13px; }
+.color-field .cl small{ display:block; color:var(--mute); font-size:11px; }
+
+.row{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.field{ flex:1; }
+.field label{ display:block; font-size:12px; color:var(--mute); margin-bottom:5px; }
+.field input, .field select, .field textarea{ width:100%; background:var(--bg2); color:var(--txt);
+  border:1px solid var(--border); border-radius:11px; padding:12px; font-size:15px; outline:none; }
+.field input:focus, .field select:focus, .field textarea:focus{ border-color:var(--blue); }
+.field textarea{ resize:vertical; min-height:70px; }
+
+.toggle{ display:flex; align-items:center; justify-content:space-between; gap:10px;
+  background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:12px 14px; }
+.toggle b{ font-size:14px; } .toggle small{ display:block; color:var(--mute); font-size:12px; margin-top:2px; }
+.sw{ width:52px; height:30px; border-radius:99px; background:#39414f; position:relative; flex:0 0 auto; transition:background .2s; }
+.sw::after{ content:""; position:absolute; top:3px; left:3px; width:24px; height:24px; border-radius:50%; background:#fff; transition:transform .2s; }
+.sw.on{ background:var(--green); } .sw.on::after{ transform:translateX(22px); }
+
+/* Racks list */
+.rack{ display:flex; align-items:center; gap:12px; background:var(--bg2); border:1px solid var(--border);
+  border-radius:12px; padding:12px; margin-bottom:10px; }
+.rack .dot{ width:14px; height:14px; border-radius:4px; flex:0 0 auto; }
+.rack .info{ flex:1; min-width:0; }
+.rack .info b{ font-size:15px; }
+.rack .info span{ display:block; font-size:12px; color:var(--mute); margin-top:2px; }
+.icobtn{ width:42px; height:42px; border-radius:11px; background:var(--card2); border:1px solid var(--border);
+  display:grid; place-items:center; font-size:18px; flex:0 0 auto; }
+.icobtn.red{ border-color:#5b2526; }
+
+/* ---------- Buscador + chips + acciones (Productos) ---------- */
+.search{ display:flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--border);
+  border-radius:14px; padding:12px 14px; margin-bottom:12px; }
+.search input{ flex:1; min-width:0; background:none; border:none; outline:none; color:var(--txt); font-size:16px; }
+.search input::placeholder{ color:#5d6675; }
+.chips{ display:flex; gap:8px; overflow-x:auto; padding-bottom:10px; margin-bottom:8px; scrollbar-width:none; }
+.chips::-webkit-scrollbar{ display:none; }
+.chip{ flex:0 0 auto; background:var(--card); border:1px solid var(--border); color:var(--txt);
+  padding:9px 16px; border-radius:999px; font-size:14px; font-weight:600; }
+.chip.active{ background:var(--blue); border-color:var(--blue); color:#fff; }
+.actions{ display:flex; gap:10px; margin-bottom:16px; }
+.act{ width:54px; height:54px; border-radius:13px; background:var(--card); border:1px solid var(--border);
+  display:grid; place-items:center; font-size:22px; }
+.act.blue{ background:var(--blue); border-color:var(--blue); }
+.act.red{ border-color:#5b2526; }
+.act.grow{ flex:1; width:auto; font-size:15px; font-weight:700; gap:8px; display:flex; }
+
+/* Lista de productos */
+.section-head{ display:flex; align-items:center; gap:10px; margin:6px 2px 12px; }
+.section-head .bar{ width:5px; height:22px; border-radius:3px; background:var(--purple); }
+.section-head b{ font-size:18px; }
+.section-head .count{ margin-left:auto; background:var(--card2); border:1px solid var(--border);
+  padding:3px 12px; border-radius:999px; font-size:14px; color:var(--mute); }
+.plist{ display:flex; flex-direction:column; gap:10px; }
+.pcard{ display:flex; align-items:center; gap:12px; background:var(--card); border:1px solid var(--border);
+  border-radius:14px; padding:12px; }
+.pcard .em{ width:52px; height:52px; border-radius:12px; background:var(--bg2); display:grid; place-items:center;
+  font-size:28px; flex:0 0 auto; overflow:hidden; }
+.pcard .em img{ width:100%; height:100%; object-fit:cover; }
+.pcard .d{ flex:1; min-width:0; }
+.pcard .d b{ font-size:15px; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.pcard .d .sub{ font-size:12px; color:var(--mute); margin-top:3px; display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+.pcard .d .price{ color:var(--yellow); font-weight:700; }
+.loc-chip{ background:#1d2738; color:#8ab4f8; border:1px solid #2a3a55; padding:1px 8px; border-radius:6px; font-size:11px; }
+.loc-chip.none{ background:#3a2417; color:#f0a868; border-color:#5a3a22; }
+.pcard .ed{ display:flex; gap:6px; flex:0 0 auto; }
+.empty{ text-align:center; color:var(--mute); padding:40px 20px; }
+.empty .big{ font-size:46px; margin-bottom:10px; }
+
+/* ---------- Sheet / modal ---------- */
+.scrim{ position:fixed; inset:0; z-index:60; background:#000d; opacity:0; pointer-events:none; transition:opacity .25s; }
+.scrim.open{ opacity:1; pointer-events:auto; }
+.sheet{ position:fixed; left:0; right:0; bottom:0; z-index:61; background:var(--bg2);
+  border-radius:22px 22px 0 0; padding:8px 16px calc(20px + var(--safe-b)); transform:translateY(110%);
+  transition:transform .32s cubic-bezier(.2,.8,.2,1); max-height:92vh; overflow:auto; box-shadow:0 -14px 40px #000a; }
+.sheet.open{ transform:translateY(0); }
+.grab{ width:42px; height:5px; border-radius:99px; background:#ffffff33; margin:6px auto 14px; }
+.sheet h2{ margin:0 0 14px; font-size:19px; }
+.btn{ width:100%; border-radius:13px; padding:15px; font-size:16px; font-weight:800; }
+.btn.primary{ background:var(--blue); color:#fff; }
+.btn.ghost{ background:var(--card); border:1px solid var(--border); }
+.btn.danger{ background:#3a1d1f; color:#ff8a8a; border:1px solid #5b2526; }
+.btn-row{ display:flex; gap:10px; margin-top:8px; }
+
+.emoji-pick{ display:flex; gap:8px; flex-wrap:wrap; }
+.emoji-pick button{ width:44px; height:44px; border-radius:11px; background:var(--card); border:1px solid var(--border); font-size:24px; }
+.emoji-pick button.sel{ border-color:var(--blue); background:#16213a; }
+
+.dropzone{ border:2px dashed var(--border); border-radius:14px; padding:26px 16px; text-align:center;
+  color:var(--mute); background:var(--card); margin-bottom:12px; }
+.dropzone .big{ font-size:40px; margin-bottom:8px; }
+.import-preview{ font-size:13px; color:var(--mute); line-height:1.7; }
+.import-preview b{ color:var(--txt); }
+
+#toast{ position:fixed; left:50%; bottom:30px; transform:translateX(-50%); z-index:80; background:#000e;
+  color:#fff; padding:13px 20px; border-radius:13px; font-size:14px; max-width:84vw; text-align:center;
+  box-shadow:0 8px 24px #000a; opacity:0; transition:opacity .25s; pointer-events:none; }
+#toast.show{ opacity:1; }
+</style>
+</head>
+<body>
+
+<header class="head">
+  <div class="ico">📦</div>
+  <div class="ttl"><b class="signage">TOTAL TOOLS</b><span>PANEL · TIENDA VIRTUAL</span></div>
+  <a class="live" href="index.html">👁️ Ver tienda</a>
+</header>
+
+<nav class="tabs">
+  <button class="tab active" data-tab="config">⚙️ Config</button>
+  <button class="tab" data-tab="productos">📦 Productos</button>
+</nav>
+
+<!-- ============== PANEL CONFIG ============== -->
+<section class="panel active" id="panel-config">
+
+  <div class="box">
+    <h3><span class="bar"></span>Colores de la tienda</h3>
+    <div class="colors" id="colors"></div>
+    <p style="font-size:12px;color:var(--mute);margin:12px 2px 0">Estos colores se aplican a la tienda jugable (no a este panel).</p>
+  </div>
+
+  <div class="box">
+    <h3><span class="bar" style="background:var(--orange)"></span>Racks / Pasillos</h3>
+    <div id="rackList"></div>
+    <button class="btn ghost" id="addRack">➕ Nuevo rack</button>
+  </div>
+
+  <div class="box">
+    <h3><span class="bar" style="background:var(--green)"></span>Ubicaciones</h3>
+    <div class="toggle" id="autoToggle">
+      <div><b>Ubicación automática</b><small>Acomoda los productos solos en su rack y nivel</small></div>
+      <div class="sw on" id="autoSw"></div>
+    </div>
+    <div id="ubicResumen" style="margin-top:12px"></div>
+  </div>
+
+  <div class="box">
+    <h3><span class="bar" style="background:var(--purple)"></span>Negocio</h3>
+    <div class="row">
+      <div class="field"><label>WhatsApp del negocio</label><input id="cfgWa" inputmode="numeric" placeholder="51999999999" /></div>
+    </div>
+    <div class="toggle">
+      <div><b>Cobrar IGV (18%)</b><small>Se muestra en la caja</small></div>
+      <div class="sw" id="igvSw"></div>
+    </div>
+    <button class="btn primary" id="saveCfg" style="margin-top:12px">Guardar configuración</button>
+  </div>
+</section>
+
+<!-- ============== PANEL PRODUCTOS ============== -->
+<section class="panel" id="panel-productos">
+  <div class="stats">
+    <div class="stat"><div class="n green" id="stTotal">0</div><div class="l">📦 Productos</div></div>
+    <div class="stat"><div class="n blue" id="stRacks">0</div><div class="l">🗂️ Racks</div></div>
+    <div class="stat"><div class="n orange" id="stSinUbic">0</div><div class="l">📍 Sin ubicar</div></div>
+    <div class="stat"><div class="n purple" id="stSinFoto">0</div><div class="l">🖼️ Sin foto</div></div>
+  </div>
+
+  <div class="search">
+    <span>🔍</span>
+    <input id="pSearch" placeholder="Buscar producto…" autocomplete="off" />
+  </div>
+  <div class="chips" id="pChips"></div>
+  <div class="actions">
+    <button class="act grow blue" id="btnNew">➕ Nuevo producto</button>
+    <button class="act" id="btnExcel" title="Importar Excel">📄</button>
+    <button class="act" id="btnExport" title="Exportar Excel">📤</button>
+    <button class="act red" id="btnClear" title="Vaciar todo">🗑️</button>
+  </div>
+
+  <div id="pListWrap"></div>
+</section>
+
+<!-- ============== SHEET: producto ============== -->
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheetProd">
+  <div class="grab"></div>
+  <h2 id="sheetProdTitle">Nuevo producto</h2>
+  <div class="field" style="margin-bottom:12px"><label>Ícono</label>
+    <div class="emoji-pick" id="emojiPick"></div>
+  </div>
+  <div class="row">
+    <div class="field"><label>Nombre</label><input id="fNombre" placeholder="Taladro Percutor 650W" /></div>
+  </div>
+  <div class="row">
+    <div class="field"><label>Marca</label><input id="fMarca" placeholder="TOTAL" /></div>
+    <div class="field"><label>Precio (S/)</label><input id="fPrecio" inputmode="decimal" placeholder="199.90" /></div>
+  </div>
+  <div class="row">
+    <div class="field"><label>Rack</label><select id="fRack"></select></div>
+    <div class="field"><label>Nivel</label><select id="fNivel"></select></div>
+  </div>
+  <div class="row">
+    <div class="field"><label>Foto (URL, opcional)</label><input id="fFoto" placeholder="https://…  (luego Firebase Storage)" /></div>
+  </div>
+  <div class="row">
+    <div class="field"><label>Video (URL, opcional)</label><input id="fVideo" placeholder="https://…" /></div>
+  </div>
+  <div class="row">
+    <div class="field"><label>Descripción</label><textarea id="fDesc" placeholder="Detalle del producto…"></textarea></div>
+  </div>
+  <button class="btn primary" id="saveProd">Guardar producto</button>
+  <div class="btn-row"><button class="btn danger" id="delProd" style="display:none">Eliminar</button></div>
+</div>
+
+<!-- ============== SHEET: rack ============== -->
+<div class="sheet" id="sheetRack">
+  <div class="grab"></div>
+  <h2 id="sheetRackTitle">Nuevo rack</h2>
+  <div class="row"><div class="field"><label>Nombre</label><input id="rNombre" placeholder="Eléctricas" /></div>
+    <div class="field"><label>Pasillo Nº</label><input id="rPasillo" inputmode="numeric" placeholder="3" /></div></div>
+  <div class="field" style="margin-bottom:12px"><label>Niveles</label>
+    <div style="display:flex;gap:8px" id="rNiveles">
+      <label class="chip"><input type="checkbox" value="alto" checked hidden> Alto</label>
+      <label class="chip"><input type="checkbox" value="medio" checked hidden> Medio</label>
+      <label class="chip"><input type="checkbox" value="bajo" hidden> Bajo</label>
+    </div>
+  </div>
+  <div class="row"><div class="field"><label>Color del cartel</label><input type="color" id="rColor" value="#f7b500" style="height:48px"></div></div>
+  <button class="btn primary" id="saveRack">Guardar rack</button>
+  <div class="btn-row"><button class="btn danger" id="delRack" style="display:none">Eliminar rack</button></div>
+</div>
+
+<!-- ============== SHEET: importar Excel ============== -->
+<div class="sheet" id="sheetExcel">
+  <div class="grab"></div>
+  <h2>Importar productos (Excel / CSV)</h2>
+  <label class="dropzone" for="excelFile">
+    <div class="big">📄</div>
+    Toca para elegir tu archivo<br><small>.xlsx, .xls o .csv — detecta las columnas solo</small>
+  </label>
+  <input id="excelFile" type="file" accept=".xlsx,.xls,.csv" hidden />
+  <div class="import-preview" id="importPreview"></div>
+  <button class="btn primary" id="doImport" style="display:none;margin-top:12px">Importar productos</button>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ============================================================
+   CAPA DE DATOS  (localStorage hoy -> Firebase después)
+   Para migrar: reemplazar read/write por Firestore.
+   ============================================================ */
+const DB = (() => {
+  const KEY = "tt_store_v1";
+  let mem = null;
+  function seed(){
+    return {
+      config:{ theme:{ acento:"#f7b500", fondo:"#1a1d23", madera:"#8a5a32", pegboard:"#c7a877" },
+               ubicacionAuto:true, igv:false, negocioWa:"51999999999" },
+      racks:[
+        { id:"r1", nombre:"Eléctricas", pasillo:3, niveles:["alto","medio"], color:"#f7b500" },
+        { id:"r2", nombre:"Manuales",   pasillo:4, niveles:["alto","medio","bajo"], color:"#3b82f6" }
+      ],
+      productos:[
+        { id:"p1", nombre:"Taladro Percutor 650W", marca:"TOTAL", precio:199.90, emoji:"🛠️", foto:"", video:"", desc:"Taladro percutor 650W, velocidad variable y reversa.", rackId:"r1", nivel:"alto" },
+        { id:"p2", nombre:"Amoladora Angular 4½\" 750W", marca:"TOTAL", precio:159.90, emoji:"⚙️", foto:"", video:"", desc:"Amoladora 750W para corte y desbaste.", rackId:"r1", nivel:"alto" },
+        { id:"p3", nombre:"Sierra Circular 1400W", marca:"TOTAL", precio:289.90, emoji:"🪚", foto:"", video:"", desc:"Sierra circular 1400W, disco 7¼\".", rackId:"r1", nivel:"alto" },
+        { id:"p4", nombre:"Juego de Llaves Mixtas 8 pz", marca:"TOTAL", precio:89.90, emoji:"🔧", foto:"", video:"", desc:"8 llaves mixtas acero cromo-vanadio.", rackId:"r1", nivel:"medio" },
+        { id:"p5", nombre:"Set Destornilladores 6 pz", marca:"TOTAL", precio:34.90, emoji:"🪛", foto:"", video:"", desc:"6 destornilladores con puntas imantadas.", rackId:"r1", nivel:"medio" },
+        { id:"p6", nombre:"Cinta Métrica 5 m", marca:"TOTAL", precio:19.90, emoji:"📏", foto:"", video:"", desc:"Wincha 5 m con freno automático.", rackId:"r1", nivel:"medio" }
+      ]
+    };
+  }
+  function read(){
+    if(mem) return mem;
+    try{ const raw = localStorage.getItem(KEY); if(raw){ mem = JSON.parse(raw); return mem; } }catch(e){}
+    mem = seed(); write(); return mem;
+  }
+  function write(){ try{ localStorage.setItem(KEY, JSON.stringify(mem)); }catch(e){ /* preview sin storage: queda en memoria */ } }
+  return {
+    all:()=>read(),
+    config:()=>read().config,
+    racks:()=>read().racks,
+    productos:()=>read().productos,
+    save:()=>write(),
+    uid:(p)=> p + Math.random().toString(36).slice(2,8)
+  };
+})();
+
+const $ = s => document.querySelector(s);
+const soles = n => "S/ " + (Number(n)||0).toFixed(2);
+let toastTimer=null;
+function toast(t){ const el=$("#toast"); el.textContent=t; el.classList.add("show");
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove("show"),2400); }
+
+/* ---------- Tabs ---------- */
+document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => {
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+  document.querySelectorAll(".panel").forEach(x=>x.classList.remove("active"));
+  t.classList.add("active");
+  $("#panel-"+t.dataset.tab).classList.add("active");
+}));
+
+/* ============================================================
+   CONFIG
+   ============================================================ */
+const COLOR_LABELS = [
+  ["acento","Acento","Botones y precios"],
+  ["fondo","Fondo","Piso y base"],
+  ["madera","Repisas","Color de estantes"],
+  ["pegboard","Pared","Tablero de fondo"]
+];
+function renderColors(){
+  const c = DB.config().theme;
+  $("#colors").innerHTML = COLOR_LABELS.map(([k,l,d]) =>
+    `<label class="color-field"><input type="color" data-k="${k}" value="${c[k]}">
+       <span class="cl">${l}<small>${d}</small></span></label>`).join("");
+  $("#colors").querySelectorAll("input").forEach(i =>
+    i.addEventListener("input", () => { DB.config().theme[i.dataset.k] = i.value; }));
+}
+function renderRacks(){
+  const racks = DB.racks();
+  $("#rackList").innerHTML = racks.map(r =>
+    `<div class="rack">
+       <span class="dot" style="background:${r.color}"></span>
+       <div class="info"><b>Pasillo ${r.pasillo} · ${r.nombre}</b>
+         <span>${r.niveles.join(" · ")} · ${DB.productos().filter(p=>p.rackId===r.id).length} productos</span></div>
+       <button class="icobtn" data-edit="${r.id}">✏️</button>
+     </div>`).join("") || `<p style="color:var(--mute);font-size:13px">Aún no hay racks.</p>`;
+  $("#rackList").querySelectorAll("[data-edit]").forEach(b =>
+    b.addEventListener("click", () => openRack(b.dataset.edit)));
+}
+function renderUbicResumen(){
+  const sin = DB.productos().filter(p => !p.rackId).length;
+  $("#ubicResumen").innerHTML =
+    `<div class="rack"><span class="dot" style="background:${sin?'var(--orange)':'var(--green)'}"></span>
+       <div class="info"><b>${sin} productos sin ubicar</b>
+       <span>${sin? 'Asígnalos a un rack en la pestaña Productos' : 'Todo está ubicado ✔️'}</span></div></div>`;
+}
+function renderConfig(){
+  renderColors(); renderRacks(); renderUbicResumen();
+  $("#cfgWa").value = DB.config().negocioWa || "";
+  $("#autoSw").classList.toggle("on", DB.config().ubicacionAuto);
+  $("#igvSw").classList.toggle("on", DB.config().igv);
+}
+$("#autoSw").addEventListener("click", e => { const on=e.target.classList.toggle("on"); DB.config().ubicacionAuto=on; });
+$("#igvSw").addEventListener("click", e => { const on=e.target.classList.toggle("on"); DB.config().igv=on; });
+$("#saveCfg").addEventListener("click", () => { DB.config().negocioWa = $("#cfgWa").value.trim(); DB.save(); toast("✔️ Configuración guardada"); });
+
+/* ---------- Sheet RACK ---------- */
+let editRackId = null;
+function openRack(id){
+  editRackId = id;
+  const r = id ? DB.racks().find(x=>x.id===id) : { nombre:"", pasillo:"", niveles:["alto","medio"], color:"#f7b500" };
+  $("#sheetRackTitle").textContent = id ? "Editar rack" : "Nuevo rack";
+  $("#rNombre").value = r.nombre; $("#rPasillo").value = r.pasillo; $("#rColor").value = r.color;
+  $("#rNiveles").querySelectorAll("label").forEach(l => {
+    const cb = l.querySelector("input"); cb.checked = r.niveles.includes(cb.value);
+    l.classList.toggle("active", cb.checked);
+  });
+  $("#delRack").style.display = id ? "block" : "none";
+  openSheet("#sheetRack");
+}
+$("#addRack").addEventListener("click", () => openRack(null));
+$("#rNiveles").querySelectorAll("label").forEach(l => l.addEventListener("click", e => {
+  e.preventDefault(); const cb=l.querySelector("input"); cb.checked=!cb.checked; l.classList.toggle("active",cb.checked);
+}));
+$("#saveRack").addEventListener("click", () => {
+  const niveles = [...$("#rNiveles").querySelectorAll("input")].filter(c=>c.checked).map(c=>c.value);
+  if(!$("#rNombre").value.trim()) return toast("Ponle un nombre al rack");
+  if(!niveles.length) return toast("Elige al menos un nivel");
+  const data = { nombre:$("#rNombre").value.trim(), pasillo:Number($("#rPasillo").value)||0, niveles, color:$("#rColor").value };
+  if(editRackId){ Object.assign(DB.racks().find(x=>x.id===editRackId), data); }
+  else { DB.racks().push({ id:DB.uid("r"), ...data }); }
+  DB.save(); closeSheet("#sheetRack"); renderConfig(); toast("✔️ Rack guardado");
+});
+$("#delRack").addEventListener("click", () => {
+  if(!editRackId) return;
+  const used = DB.productos().filter(p=>p.rackId===editRackId).length;
+  if(used && !confirm(`Este rack tiene ${used} productos. Quedarán "sin ubicar". ¿Eliminar?`)) return;
+  DB.productos().forEach(p => { if(p.rackId===editRackId){ p.rackId=null; p.nivel=null; } });
+  DB.all().racks = DB.racks().filter(x=>x.id!==editRackId);
+  DB.save(); closeSheet("#sheetRack"); renderConfig(); renderProductos(); toast("Rack eliminado");
+});
+
+/* ============================================================
+   PRODUCTOS
+   ============================================================ */
+const EMOJIS = ["🛠️","⚙️","🪚","🔧","🪛","📏","🔩","🔨","🧰","⛏️","🪓","🔌","💡","🧲","🪜","🧱","🎨","🧤"];
+let filtroRack = "todos", busqueda = "";
+
+function renderChips(){
+  const racks = DB.racks();
+  $("#pChips").innerHTML =
+    `<button class="chip ${filtroRack==='todos'?'active':''}" data-r="todos">Todos</button>` +
+    racks.map(r=>`<button class="chip ${filtroRack===r.id?'active':''}" data-r="${r.id}">${r.nombre}</button>`).join("") +
+    `<button class="chip ${filtroRack==='sin'?'active':''}" data-r="sin">📍 Sin ubicar</button>`;
+  $("#pChips").querySelectorAll(".chip").forEach(c =>
+    c.addEventListener("click", ()=>{ filtroRack=c.dataset.r; renderList(); renderChips(); }));
+}
+function renderStats(){
+  const P=DB.productos();
+  $("#stTotal").textContent = P.length;
+  $("#stRacks").textContent = DB.racks().length;
+  $("#stSinUbic").textContent = P.filter(p=>!p.rackId).length;
+  $("#stSinFoto").textContent = P.filter(p=>!p.foto).length;
+}
+function renderList(){
+  let P = DB.productos();
+  if(filtroRack==="sin") P = P.filter(p=>!p.rackId);
+  else if(filtroRack!=="todos") P = P.filter(p=>p.rackId===filtroRack);
+  if(busqueda) P = P.filter(p => (p.nombre+" "+(p.marca||"")).toLowerCase().includes(busqueda));
+
+  const wrap = $("#pListWrap");
+  if(!P.length){ wrap.innerHTML = `<div class="empty"><div class="big">🧰</div>No hay productos aquí.<br>Crea uno o importa tu Excel.</div>`; return; }
+  const rackName = id => { const r=DB.racks().find(x=>x.id===id); return r?`P${r.pasillo} · ${r.nombre}`:null; };
+  wrap.innerHTML =
+    `<div class="section-head"><span class="bar"></span><b>Productos</b><span class="count">${P.length}</span></div>
+     <div class="plist">` +
+    P.map(p=>{
+      const loc = rackName(p.rackId);
+      const photo = p.foto ? `<img src="${p.foto}" alt="">` : p.emoji;
+      return `<div class="pcard">
+        <div class="em">${photo}</div>
+        <div class="d"><b>${p.nombre}</b>
+          <div class="sub"><span class="price">${soles(p.precio)}</span>
+            ${p.marca?`· ${p.marca}`:""}
+            ${loc?`<span class="loc-chip">${loc} · ${p.nivel||'—'}</span>`:`<span class="loc-chip none">sin ubicar</span>`}
+          </div></div>
+        <div class="ed"><button class="icobtn" data-edit="${p.id}">✏️</button></div>
+      </div>`;
+    }).join("") + `</div>`;
+  wrap.querySelectorAll("[data-edit]").forEach(b => b.addEventListener("click", ()=>openProd(b.dataset.edit)));
+}
+function renderProductos(){ renderStats(); renderChips(); renderList(); }
+
+$("#pSearch").addEventListener("input", e => { busqueda=e.target.value.trim().toLowerCase(); renderList(); });
+
+/* ---------- Sheet PRODUCTO ---------- */
+let editProdId = null;
+function fillRackSelect(rackId, nivel){
+  const racks = DB.racks();
+  $("#fRack").innerHTML = `<option value="">— Sin ubicar —</option>` +
+    racks.map(r=>`<option value="${r.id}">P${r.pasillo} · ${r.nombre}</option>`).join("");
+  $("#fRack").value = rackId || "";
+  fillNivelSelect(rackId, nivel);
+}
+function fillNivelSelect(rackId, nivel){
+  const r = DB.racks().find(x=>x.id===rackId);
+  const niveles = r ? r.niveles : ["alto","medio","bajo"];
+  $("#fNivel").innerHTML = niveles.map(n=>`<option value="${n}">${n}</option>`).join("");
+  if(nivel && niveles.includes(nivel)) $("#fNivel").value = nivel;
+}
+$("#fRack").addEventListener("change", () => fillNivelSelect($("#fRack").value, null));
+
+function renderEmojiPick(sel){
+  $("#emojiPick").innerHTML = EMOJIS.map(e=>`<button class="${e===sel?'sel':''}" data-e="${e}">${e}</button>`).join("");
+  $("#emojiPick").querySelectorAll("button").forEach(b => b.addEventListener("click", ()=>{
+    $("#emojiPick").querySelectorAll("button").forEach(x=>x.classList.remove("sel")); b.classList.add("sel");
+  }));
+}
+function selectedEmoji(){ const s=$("#emojiPick .sel"); return s?s.dataset.e:"📦"; }
+
+function openProd(id){
+  editProdId = id;
+  const p = id ? DB.productos().find(x=>x.id===id)
+              : { nombre:"", marca:"TOTAL", precio:"", emoji:"📦", foto:"", video:"", desc:"", rackId:DB.racks()[0]?.id||"", nivel:DB.racks()[0]?.niveles[0]||"" };
+  $("#sheetProdTitle").textContent = id ? "Editar producto" : "Nuevo producto";
+  renderEmojiPick(p.emoji);
+  $("#fNombre").value=p.nombre; $("#fMarca").value=p.marca||""; $("#fPrecio").value=p.precio;
+  $("#fFoto").value=p.foto||""; $("#fVideo").value=p.video||""; $("#fDesc").value=p.desc||"";
+  fillRackSelect(p.rackId, p.nivel);
+  $("#delProd").style.display = id ? "block" : "none";
+  openSheet("#sheetProd");
+}
+$("#btnNew").addEventListener("click", ()=>openProd(null));
+$("#saveProd").addEventListener("click", () => {
+  if(!$("#fNombre").value.trim()) return toast("Ponle un nombre al producto");
+  const data = {
+    nombre:$("#fNombre").value.trim(), marca:$("#fMarca").value.trim(),
+    precio:parseFloat($("#fPrecio").value)||0, emoji:selectedEmoji(),
+    foto:$("#fFoto").value.trim(), video:$("#fVideo").value.trim(), desc:$("#fDesc").value.trim(),
+    rackId:$("#fRack").value||null, nivel:$("#fRack").value?$("#fNivel").value:null
+  };
+  if(editProdId){ Object.assign(DB.productos().find(x=>x.id===editProdId), data); }
+  else { DB.productos().push({ id:DB.uid("p"), ...data }); }
+  DB.save(); closeSheet("#sheetProd"); renderProductos(); renderConfig(); toast("✔️ Producto guardado");
+});
+$("#delProd").addEventListener("click", () => {
+  if(!editProdId) return;
+  if(!confirm("¿Eliminar este producto?")) return;
+  DB.all().productos = DB.productos().filter(x=>x.id!==editProdId);
+  DB.save(); closeSheet("#sheetProd"); renderProductos(); toast("Producto eliminado");
+});
+
+/* ---------- Acciones extra ---------- */
+$("#btnClear").addEventListener("click", () => {
+  if(!confirm("Esto borra TODOS los productos. ¿Seguro?")) return;
+  DB.all().productos = []; DB.save(); renderProductos(); renderConfig(); toast("Productos eliminados");
+});
+$("#btnExport").addEventListener("click", () => {
+  const rows = DB.productos().map(p => {
+    const r = DB.racks().find(x=>x.id===p.rackId);
+    return { Nombre:p.nombre, Marca:p.marca, Precio:p.precio, Categoria:r?r.nombre:"", Nivel:p.nivel||"", Descripcion:p.desc, Emoji:p.emoji };
+  });
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Productos");
+  XLSX.writeFile(wb, "productos-total-tools.xlsx"); toast("📤 Excel exportado");
+});
+
+/* ============================================================
+   IMPORTAR EXCEL  (detección automática de columnas)
+   ============================================================ */
+let importData = null;
+$("#btnExcel").addEventListener("click", ()=>{ importData=null; $("#importPreview").innerHTML=""; $("#doImport").style.display="none"; openSheet("#sheetExcel"); });
+$("#excelFile").addEventListener("change", e => {
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try{
+      const wb = XLSX.read(ev.target.result, { type:"array" });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { header:1, defval:"" });
+      parseRows(rows, file.name);
+    }catch(err){ toast("No pude leer el archivo"); }
+  };
+  reader.readAsArrayBuffer(file);
+});
+function norm(s){ return String(s).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim(); }
+function detectCols(headers){
+  const find = keys => headers.findIndex(h => keys.some(k => norm(h).includes(k)));
+  return {
+    nombre: find(["nombre","producto","descripcion corta","item","articulo","name"]),
+    precio: find(["precio","price","pvp","venta","costo"]),
+    marca:  find(["marca","brand"]),
+    desc:   find(["descripcion","detalle","observ"]),
+    cat:    find(["categor","rubro","seccion","familia","linea","rack","pasillo"]),
+    emoji:  find(["emoji","icono"])
+  };
+}
+function parseRows(rows, fname){
+  // Detecta la fila de encabezados (la que tenga más texto y palabras clave)
+  let hi = 0, best = -1;
+  rows.slice(0,8).forEach((r,i)=>{
+    const txt = r.filter(c=>String(c).trim()).length;
+    const kw = r.some(c=>/(nombre|producto|precio|price|marca)/i.test(String(c)));
+    const score = txt + (kw?10:0);
+    if(score>best){ best=score; hi=i; }
+  });
+  const headers = rows[hi].map(h=>String(h));
+  const col = detectCols(headers);
+  if(col.nombre<0){ $("#importPreview").innerHTML="❌ No encontré una columna de <b>nombre</b>. Revisa el archivo."; return; }
+
+  const racks = DB.racks();
+  const matchRack = cat => { if(!cat) return null; const c=norm(cat); const r=racks.find(x=>norm(x.nombre).includes(c)||c.includes(norm(x.nombre))); return r?r.id:null; };
+
+  const items = [];
+  rows.slice(hi+1).forEach(r => {
+    const nombre = String(r[col.nombre]||"").trim(); if(!nombre) return;
+    const rackId = col.cat>=0 ? matchRack(r[col.cat]) : null;
+    items.push({
+      id:DB.uid("p"), nombre,
+      marca: col.marca>=0 ? String(r[col.marca]||"").trim() : "",
+      precio: col.precio>=0 ? (parseFloat(String(r[col.precio]).replace(/[^\d.,]/g,"").replace(",","."))||0) : 0,
+      desc: col.desc>=0 ? String(r[col.desc]||"").trim() : "",
+      emoji: col.emoji>=0 && r[col.emoji] ? String(r[col.emoji]).trim() : "📦",
+      foto:"", video:"",
+      rackId, nivel: rackId ? (racks.find(x=>x.id===rackId).niveles[0]) : null
+    });
+  });
+  importData = items;
+  const sinUbic = items.filter(i=>!i.rackId).length;
+  const mapTxt = Object.entries(col).filter(([,v])=>v>=0).map(([k])=>k).join(", ");
+  $("#importPreview").innerHTML =
+    `📄 <b>${fname}</b><br>Columnas detectadas: <b>${mapTxt}</b><br>
+     Productos a importar: <b>${items.length}</b><br>
+     ${sinUbic?`<b style="color:var(--orange)">${sinUbic} quedarán sin ubicar</b> (la categoría no coincide con un rack)`:`Todos se ubicarán por categoría ✔️`}`;
+  $("#doImport").style.display = items.length ? "block" : "none";
+}
+$("#doImport").addEventListener("click", () => {
+  if(!importData||!importData.length) return;
+  DB.productos().push(...importData); DB.save();
+  closeSheet("#sheetExcel"); renderProductos(); renderConfig();
+  toast(`✔️ ${importData.length} productos importados`);
+});
+
+/* ---------- Sheets util ---------- */
+function openSheet(sel){ $("#scrim").classList.add("open"); $(sel).classList.add("open"); }
+function closeSheet(sel){ $(sel).classList.remove("open"); $("#scrim").classList.remove("open"); }
+$("#scrim").addEventListener("click", () => { document.querySelectorAll(".sheet.open").forEach(s=>s.classList.remove("open")); $("#scrim").classList.remove("open"); });
+
+/* ---------- Init ---------- */
+renderConfig();
+renderProductos();
+</script>
+</body>
+</html>
