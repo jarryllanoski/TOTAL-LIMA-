@@ -12,7 +12,7 @@
 <style>
 /* ============================================================
    TOTAL TOOLS · Tienda jugable
-   Personaje + carrito, Asesor TOTAL (chat/búsqueda), sin buscador arriba.
+   Navegación 2D · personajes de cuerpo completo · asesor · chat compacto
    ============================================================ */
 :root{
   --concreto:#1a1d23; --concreto-2:#23272f;
@@ -34,71 +34,76 @@ button{ font-family:inherit; cursor:pointer; border:none; }
   padding:0 14px; background:linear-gradient(#1a1d23ee,#1a1d23cc); backdrop-filter:blur(6px); border-bottom:1px solid #0008; }
 .brand{ display:flex; align-items:center; gap:8px; flex:1; }
 .brand .logo{ width:34px; height:34px; border-radius:9px; display:grid; place-items:center; background:var(--amarillo); color:var(--negro); font-size:20px; box-shadow:0 2px 0 #0006; }
-.brand .name{ line-height:.9; }
-.brand .name b{ font-size:15px; display:block; } .brand .name span{ font-size:10px; color:var(--texto-mute); letter-spacing:1.5px; }
-.ask-top{ flex:0 0 auto; background:var(--concreto-2); color:var(--texto); border:1px solid #ffffff1c; border-radius:999px;
-  padding:9px 14px; font-size:14px; font-weight:700; display:flex; align-items:center; gap:6px; }
-.ask-top:active{ transform:scale(.96); }
+.brand .name b{ font-size:15px; display:block; line-height:1; } .brand .name span{ font-size:10px; color:var(--texto-mute); letter-spacing:1.5px; }
 
 .section-banner{ position:fixed; left:0; right:0; top:60px; z-index:30; height:40px; display:flex; align-items:center; gap:10px;
   padding:0 14px; color:var(--negro); background:repeating-linear-gradient(45deg,#f7b500 0 18px,#14161a 18px 36px); box-shadow:0 4px 14px #0007; }
-.section-banner .chip{ background:#14161a; color:var(--amarillo); padding:4px 12px; border-radius:6px; font-size:13px; display:flex; align-items:center; gap:7px; }
+.section-banner .chip{ background:#14161a; color:var(--amarillo); padding:4px 12px; border-radius:6px; font-size:13px; }
 .section-banner .chip b{ font-size:14px; }
 .section-banner .hint{ margin-left:auto; font-size:11px; color:#14161a; background:#ffffffcc; padding:3px 9px; border-radius:999px; font-weight:700; }
 
+/* ---------- Mundo 2D ---------- */
 .stage{ position:fixed; inset:100px 0 0 0; overflow:hidden; }
-.wall{ position:absolute; inset:0 -40% 120px -40%; will-change:transform;
+.world{ position:absolute; inset:0; overflow:auto; scroll-behavior:smooth; scroll-snap-type:y proximity;
+  -webkit-overflow-scrolling:touch; scrollbar-width:none; cursor:grab; background:var(--concreto); }
+.world.grabbing{ cursor:grabbing; }
+.world::-webkit-scrollbar{ display:none; }
+
+.aisle-band{ position:relative; width:max-content; min-width:100%; min-height:100%; scroll-snap-align:start;
+  display:flex; flex-direction:column; padding:12px 0 0;
   background:radial-gradient(circle at center,#0000 2px,#00000022 3px) 0 0/26px 26px, linear-gradient(180deg,var(--pegboard),var(--pegboard-2));
-  background-blend-mode:multiply,normal; box-shadow:inset 0 -40px 60px #0006; }
-.wall::after{ content:""; position:absolute; left:0; right:0; top:6px; height:10px; background:linear-gradient(#5a5246,#3a342c); box-shadow:0 3px 8px #0006; }
-.floor{ position:absolute; left:0; right:0; bottom:0; height:120px; overflow:hidden; background:linear-gradient(180deg,#2a2e36,#1a1d23); box-shadow:inset 0 18px 30px #0007; }
-.floor .line{ position:absolute; left:-50%; right:-50%; top:46px; height:9px; will-change:transform; background:repeating-linear-gradient(90deg,#f7b50066 0 46px,#0000 46px 92px); border-radius:99px; opacity:.7; }
-
-.aisle{ position:absolute; inset:0 0 120px 0; overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch; scroll-behavior:smooth; scrollbar-width:none; }
-.aisle::-webkit-scrollbar{ display:none; }
-.track{ display:inline-flex; flex-direction:row; align-items:stretch; min-width:100%; height:100%; padding-top:14px; }
-
-.rack-group{ display:inline-flex; flex-direction:column; justify-content:flex-start; padding:0 24px; position:relative; }
-.rack-group + .rack-group{ border-left:2px dashed #ffffff14; }
-.group-tag{ align-self:flex-start; background:#14161a; color:var(--amarillo); border:1px solid #ffffff14; font-size:11px;
-  padding:3px 10px; border-radius:7px; margin:0 0 8px 4px; white-space:nowrap; }
+  background-blend-mode:multiply,normal; border-bottom:4px solid #0006; }
+.band-sign{ align-self:flex-start; position:sticky; left:14px; background:#14161a; color:var(--amarillo); border:1px solid #ffffff22;
+  font-size:13px; padding:5px 12px; border-radius:8px; margin:0 0 10px 14px; white-space:nowrap; box-shadow:0 3px 10px #0006; }
+.shelves{ flex:1; display:flex; flex-direction:column; justify-content:center; gap:4px; padding:0 24px; }
 .shelf{ position:relative; }
-.shelf-row{ display:inline-flex; gap:16px; align-items:flex-end; padding:0 4px 6px; min-height:150px; }
-.ledge{ height:16px; width:100%; background:linear-gradient(180deg,var(--madera),var(--madera-2)); border-radius:3px; box-shadow:0 8px 16px #0007, inset 0 2px 0 #ffffff22; margin-bottom:22px; }
-.shelf-empty{ color:#ffffff33; font-size:12px; padding:50px 10px 0; }
+.shelf-row{ display:inline-flex; gap:16px; align-items:flex-end; padding:0 4px 6px; min-height:128px; }
+.ledge{ height:15px; width:100%; background:linear-gradient(180deg,var(--madera),var(--madera-2)); border-radius:3px; box-shadow:0 8px 16px #0007, inset 0 2px 0 #ffffff22; margin-bottom:16px; }
+.shelf-empty{ color:#00000044; font-size:12px; padding:44px 10px 0; }
+.band-floor{ height:60px; width:100%; background:linear-gradient(180deg,#2a2e36,#1a1d23); box-shadow:inset 0 14px 26px #0007; position:relative; overflow:hidden; }
+.band-floor::after{ content:""; position:absolute; left:0; right:0; top:26px; height:7px; background:repeating-linear-gradient(90deg,#f7b50055 0 44px,#0000 44px 88px); animation:floormove 6s linear infinite; }
+@keyframes floormove{ from{ transform:translateX(0) } to{ transform:translateX(-88px) } }
 
-.product{ width:128px; flex:0 0 auto; display:flex; flex-direction:column; gap:6px; cursor:pointer; transform-origin:bottom center; transition:transform .15s ease; background:none; }
+.product{ width:124px; flex:0 0 auto; display:flex; flex-direction:column; gap:6px; cursor:pointer; transform-origin:bottom center; transition:transform .15s ease; background:none; }
 .product:active{ transform:translateY(-3px) scale(1.03); }
-.product:focus-visible{ outline:3px solid var(--amarillo); outline-offset:4px; border-radius:12px; }
-.product .photo{ height:96px; border-radius:12px; display:grid; place-items:center; font-size:46px; overflow:hidden;
+.product .photo{ height:90px; border-radius:12px; display:grid; place-items:center; font-size:44px; overflow:hidden;
   background:radial-gradient(circle at 50% 35%,#ffffff14,#0000), linear-gradient(160deg,#2f343d,#202329); border:1px solid #ffffff10; box-shadow:var(--sombra); position:relative; }
 .product .photo img{ width:100%; height:100%; object-fit:cover; }
 .product .photo .vid{ position:absolute; top:6px; right:6px; font-size:11px; background:#000a; color:#fff; padding:2px 6px; border-radius:6px; }
-.product .pname{ font-size:12px; line-height:1.15; height:30px; overflow:hidden; color:var(--texto); }
+.product .pname{ font-size:12px; line-height:1.15; height:30px; overflow:hidden; color:#1a1a1a; font-weight:600; }
 .product .ptag{ align-self:flex-start; background:var(--amarillo); color:var(--negro); font-size:13px; padding:2px 9px; border-radius:6px; font-weight:700; box-shadow:0 2px 0 #0005; }
-.product.dim{ opacity:.2; filter:grayscale(.6); }
 .product.spot .photo{ box-shadow:0 0 0 3px var(--amarillo), 0 0 26px #f7b50099, var(--sombra); animation:spot 1.4s ease 2; }
 @keyframes spot{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-8px); } }
 
-.next-aisle{ flex:0 0 auto; align-self:center; margin:0 8px 40px 24px; display:flex; flex-direction:column; align-items:center; gap:8px; color:var(--texto-mute); }
-.next-aisle .arrow{ width:58px; height:58px; border-radius:50%; display:grid; place-items:center; background:#2a2e36; border:1px solid #ffffff14; font-size:24px; color:var(--amarillo); box-shadow:var(--sombra); }
-.next-aisle small{ font-size:11px; max-width:120px; text-align:center; }
-
-/* ---------- Actores: personaje + carrito y asesor ---------- */
-.actors{ position:absolute; left:50%; bottom:24px; transform:translateX(-50%); z-index:20; display:flex; align-items:flex-end; gap:4px; pointer-events:none; }
-.actors.walking .char,.actors.walking .cart,.actors.walking .who{ animation-duration:.5s !important; }
+/* ---------- Personajes de cuerpo completo ---------- */
+.actors{ position:fixed; left:50%; bottom:14px; transform:translateX(-50%); z-index:20; display:flex; align-items:flex-end; gap:2px; pointer-events:none; }
 .player,.advisor{ position:relative; display:flex; align-items:flex-end; pointer-events:auto; cursor:pointer; }
-.player .char{ font-size:40px; filter:drop-shadow(0 8px 6px #0008); animation:bob 1.6s ease-in-out infinite; }
-.player .cart{ font-size:34px; margin-left:-8px; filter:drop-shadow(0 8px 6px #0008); animation:bob 1.6s ease-in-out .1s infinite; }
-.advisor{ margin-left:6px; }
-.advisor .who{ font-size:34px; filter:drop-shadow(0 8px 6px #0008); animation:bob 1.6s ease-in-out .2s infinite; }
+.advisor{ margin-left:10px; }
+.player .cart{ font-size:30px; margin-left:-4px; filter:drop-shadow(0 6px 5px #0008); }
+.figwrap{ animation:bobup 2s ease-in-out infinite; }
+.actors .shadow{ position:absolute; bottom:-2px; left:50%; transform:translateX(-50%); width:36px; height:7px; border-radius:50%; background:#000; opacity:.32; filter:blur(3px); }
 .advisor .tag{ position:absolute; bottom:-6px; left:50%; transform:translateX(-50%); background:var(--amarillo); color:var(--negro);
   font-size:9px; font-weight:800; padding:1px 7px; border-radius:99px; white-space:nowrap; box-shadow:0 2px 0 #0005; }
-.actors .shadow{ position:absolute; bottom:-2px; left:50%; transform:translateX(-50%); width:42px; height:8px; border-radius:50%; background:#000; opacity:.32; filter:blur(3px); }
-.advisor .bubble{ position:absolute; bottom:46px; left:50%; transform:translateX(-40%); background:#fff; color:#1a1a1a; font-size:12px; font-weight:600;
-  padding:7px 11px; border-radius:12px 12px 12px 2px; white-space:nowrap; box-shadow:0 6px 16px #0007; opacity:0; transition:opacity .3s, transform .3s; pointer-events:none; }
-.advisor .bubble.show{ opacity:1; transform:translateX(-40%) translateY(-2px); }
-@keyframes bob{ 0%,100%{ transform:translateY(0) rotate(0); } 50%{ transform:translateY(-3px) rotate(-2deg); } }
+.ask-pill{ position:absolute; bottom:74px; left:50%; transform:translateX(-50%); background:#fff; color:#14161a; font-size:12px; font-weight:800;
+  padding:7px 12px; border-radius:14px; white-space:nowrap; box-shadow:0 6px 16px #0008; pointer-events:auto; display:flex; align-items:center; gap:5px;
+  animation:pillpop 2.4s ease-in-out infinite; }
+.ask-pill::after{ content:""; position:absolute; bottom:-6px; left:50%; transform:translateX(-50%); border:7px solid transparent; border-top-color:#fff; border-bottom:0; }
+@keyframes pillpop{ 0%,100%{ transform:translateX(-50%) translateY(0) } 50%{ transform:translateX(-50%) translateY(-3px) } }
+@keyframes bobup{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-2px) } }
+
+.fig{ position:relative; width:38px; height:70px; flex:0 0 auto; }
+.fig .head{ position:absolute; top:2px; left:50%; transform:translateX(-50%); width:20px; height:20px; border-radius:50%; background:var(--skin,#e8b98c); z-index:2; box-shadow:inset -2px -1px 0 #0000001a; }
+.fig .hat{ position:absolute; top:-3px; left:50%; transform:translateX(-50%); width:26px; height:11px; border-radius:13px 13px 3px 3px; background:var(--hatc,#f7b500); z-index:3; display:var(--hatd,none); box-shadow:inset 0 -2px 0 #00000022; }
+.fig .body{ position:absolute; top:19px; left:50%; transform:translateX(-50%); width:28px; height:30px; border-radius:9px 9px 6px 6px; background:var(--shirt,#3b82f6); z-index:1; box-shadow:inset 0 -6px 0 #00000012; }
+.fig .body.vest{ box-shadow:inset 0 0 0 2px #1a1d2366, inset 0 7px 0 -4px #ffffffcc, inset 0 -9px 0 -4px #ffffffcc; }
+.fig .arm{ position:absolute; top:21px; width:7px; height:24px; border-radius:5px; background:var(--shirt,#3b82f6); z-index:0; transform-origin:top center; }
+.fig .arm.l{ left:1px; } .fig .arm.r{ right:1px; }
+.fig .leg{ position:absolute; bottom:0; width:9px; height:21px; border-radius:5px 5px 4px 4px; background:var(--pants,#2b3a55); transform-origin:top center; z-index:1; }
+.fig .leg.l{ left:9px; } .fig .leg.r{ right:9px; }
+.actors.walking .fig .leg.l{ animation:legA .5s linear infinite; } .actors.walking .fig .leg.r{ animation:legB .5s linear infinite; }
+.actors.walking .fig .arm.l{ animation:legB .5s linear infinite; } .actors.walking .fig .arm.r{ animation:legA .5s linear infinite; }
+@keyframes legA{ 0%,100%{ transform:rotate(15deg) } 50%{ transform:rotate(-15deg) } }
+@keyframes legB{ 0%,100%{ transform:rotate(-15deg) } 50%{ transform:rotate(15deg) } }
 
 .cart-fab{ position:fixed; right:16px; bottom:calc(20px + var(--safe-b)); z-index:50; width:62px; height:62px; border-radius:50%; background:var(--amarillo); color:var(--negro); display:grid; place-items:center; font-size:26px; box-shadow:0 8px 22px #000a,0 2px 0 #0006; transition:transform .15s ease; }
 .cart-fab:active{ transform:scale(.92); }
@@ -107,14 +112,14 @@ button{ font-family:inherit; cursor:pointer; border:none; }
 .cart-fab.bump{ animation:bump .35s ease; }
 @keyframes bump{ 0%,100%{ transform:scale(1); } 40%{ transform:scale(1.22); } }
 
-/* ---------- Hojas ---------- */
+/* ---------- Hoja de producto ---------- */
 .scrim{ position:fixed; inset:0; z-index:60; background:#000c; opacity:0; pointer-events:none; transition:opacity .25s; }
 .scrim.open{ opacity:1; pointer-events:auto; }
-.sheet{ position:fixed; left:0; right:0; bottom:0; z-index:61; background:var(--concreto-2); border-radius:22px 22px 0 0; padding:8px 18px calc(22px + var(--safe-b)); transform:translateY(110%); transition:transform .32s cubic-bezier(.2,.8,.2,1); box-shadow:0 -14px 40px #000a; max-height:86vh; overflow:auto; }
+.sheet{ position:fixed; left:0; right:0; bottom:0; z-index:61; background:var(--concreto-2); border-radius:22px 22px 0 0; padding:8px 18px calc(22px + var(--safe-b)); transform:translateY(110%); transition:transform .32s cubic-bezier(.2,.8,.2,1); box-shadow:0 -14px 40px #000a; max-height:80vh; overflow:auto; }
 .sheet.open{ transform:translateY(0); }
 .sheet .grab{ width:42px; height:5px; border-radius:99px; background:#ffffff33; margin:6px auto 14px; }
 .sheet-top{ display:flex; gap:14px; }
-.sheet .ph{ width:108px; height:108px; flex:0 0 auto; border-radius:16px; display:grid; place-items:center; font-size:60px; overflow:hidden; background:linear-gradient(160deg,#343a44,#23272f); border:1px solid #ffffff12; }
+.sheet .ph{ width:100px; height:100px; flex:0 0 auto; border-radius:16px; display:grid; place-items:center; font-size:56px; overflow:hidden; background:linear-gradient(160deg,#343a44,#23272f); border:1px solid #ffffff12; }
 .sheet .ph img{ width:100%; height:100%; object-fit:cover; }
 .sheet .meta{ flex:1; min-width:0; }
 .sheet .brandtag{ font-size:11px; color:var(--amarillo); letter-spacing:1.5px; }
@@ -122,40 +127,46 @@ button{ font-family:inherit; cursor:pointer; border:none; }
 .sheet .price{ font-size:26px; color:var(--amarillo); }
 .sheet .desc{ color:var(--texto-mute); font-size:14px; line-height:1.5; margin:14px 0; }
 .sheet .actions{ display:flex; gap:10px; }
-.btn-vid{ flex:0 0 auto; background:#0d0f13; color:var(--texto); border:1px solid #2c2f37; border-radius:12px; padding:14px 16px; font-size:14px; display:flex; align-items:center; gap:7px; }
+.btn-vid{ flex:0 0 auto; background:#0d0f13; color:var(--texto); border:1px solid #2c2f37; border-radius:12px; padding:14px 16px; font-size:14px; }
 .btn-add{ flex:1; background:var(--amarillo); color:var(--negro); border-radius:12px; padding:14px; font-size:16px; font-weight:800; box-shadow:0 4px 0 #0005; }
 .btn-add:active{ transform:translateY(2px); box-shadow:0 2px 0 #0005; }
 
-/* Asesor chat */
-.adv-head{ display:flex; align-items:center; gap:12px; margin-bottom:12px; }
-.adv-head .av{ width:46px; height:46px; border-radius:12px; background:#14161a; display:grid; place-items:center; font-size:26px; }
-.adv-head b{ font-size:16px; } .adv-head small{ display:block; color:var(--texto-mute); font-size:12px; }
-.adv-msgs{ display:flex; flex-direction:column; gap:8px; min-height:120px; max-height:42vh; overflow:auto; padding:4px 0; }
-.msg{ max-width:84%; padding:10px 13px; border-radius:14px; font-size:14px; line-height:1.4; }
+/* ---------- Chat compacto del asesor ---------- */
+.chat-catch{ position:fixed; inset:0; z-index:61; display:none; }
+.chat-catch.open{ display:block; }
+.chat{ position:fixed; left:50%; bottom:14px; transform:translate(-50%,18px) scale(.98); z-index:62; width:min(380px,calc(100vw - 20px)); max-height:56vh;
+  display:flex; flex-direction:column; background:var(--concreto-2); border:1px solid #ffffff1c; border-radius:18px; box-shadow:0 16px 44px #000c;
+  opacity:0; pointer-events:none; transition:.2s; }
+.chat.open{ transform:translate(-50%,0) scale(1); opacity:1; pointer-events:auto; }
+.chat-head{ display:flex; align-items:center; gap:10px; padding:12px 14px; border-bottom:1px solid #ffffff10; }
+.chat-head .av{ width:38px; height:38px; border-radius:10px; background:#14161a; display:grid; place-items:center; font-size:22px; }
+.chat-head b{ font-size:15px; } .chat-head small{ display:block; color:var(--texto-mute); font-size:11px; }
+.chat-head .x{ margin-left:auto; background:none; color:var(--texto-mute); font-size:18px; }
+.chat-msgs{ flex:1; overflow:auto; padding:12px 14px; display:flex; flex-direction:column; gap:8px; min-height:70px; }
+.msg{ max-width:86%; padding:9px 12px; border-radius:14px; font-size:14px; line-height:1.4; }
 .msg.bot{ align-self:flex-start; background:#14161a; border:1px solid #ffffff10; border-bottom-left-radius:4px; }
 .msg.me{ align-self:flex-end; background:var(--amarillo); color:var(--negro); font-weight:600; border-bottom-right-radius:4px; }
 .res{ display:flex; align-items:center; gap:10px; background:#14161a; border:1px solid #ffffff12; border-radius:12px; padding:8px 10px; margin-top:6px; }
-.res .e{ font-size:26px; width:40px; height:40px; display:grid; place-items:center; background:#23272f; border-radius:9px; flex:0 0 auto; overflow:hidden; }
+.res .e{ font-size:24px; width:38px; height:38px; display:grid; place-items:center; background:#23272f; border-radius:9px; flex:0 0 auto; overflow:hidden; }
 .res .e img{ width:100%; height:100%; object-fit:cover; }
 .res .i{ flex:1; min-width:0; } .res .i b{ font-size:13px; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .res .i span{ font-size:13px; color:var(--amarillo); }
-.res .go{ background:var(--amarillo); color:var(--negro); border-radius:9px; padding:8px 12px; font-size:13px; font-weight:800; flex:0 0 auto; }
-.adv-chips{ display:flex; gap:8px; overflow-x:auto; padding:12px 0 10px; scrollbar-width:none; }
-.adv-chips::-webkit-scrollbar{ display:none; }
-.adv-chip{ flex:0 0 auto; background:#14161a; border:1px solid #ffffff18; color:var(--texto); padding:9px 14px; border-radius:999px; font-size:13px; }
-.adv-input{ display:flex; gap:8px; align-items:center; }
-.adv-input input{ flex:1; background:#0d0f13; border:1px solid #2c2f37; border-radius:999px; padding:13px 16px; color:var(--texto); font-size:15px; outline:none; }
-.adv-input button{ width:48px; height:48px; border-radius:50%; background:var(--amarillo); color:var(--negro); font-size:18px; flex:0 0 auto; }
+.res .go{ background:var(--amarillo); color:var(--negro); border-radius:9px; padding:7px 11px; font-size:13px; font-weight:800; flex:0 0 auto; }
+.chat-chips{ display:flex; gap:8px; overflow-x:auto; padding:8px 14px; scrollbar-width:none; }
+.chat-chips::-webkit-scrollbar{ display:none; }
+.chat-chip{ flex:0 0 auto; background:#14161a; border:1px solid #ffffff18; color:var(--texto); padding:8px 13px; border-radius:999px; font-size:13px; }
+.chat-input{ display:flex; gap:8px; align-items:center; padding:10px 12px calc(12px + var(--safe-b)); border-top:1px solid #ffffff10; }
+.chat-input input{ flex:1; background:#0d0f13; border:1px solid #2c2f37; border-radius:999px; padding:12px 15px; color:var(--texto); font-size:15px; outline:none; }
+.chat-input button{ width:44px; height:44px; border-radius:50%; background:var(--amarillo); color:var(--negro); font-size:17px; flex:0 0 auto; }
 
-/* Selección de personaje */
-.char-select{ position:fixed; inset:0; z-index:75; display:none; place-items:center; padding:24px;
-  background:radial-gradient(120% 80% at 50% 0%, #2a2f38, #14161a); }
-.cs-card{ width:100%; max-width:420px; text-align:center; }
-.cs-logo{ display:inline-grid; place-items:center; width:64px; height:64px; border-radius:16px; background:var(--amarillo); color:var(--negro); font-size:34px; margin-bottom:14px; box-shadow:0 6px 0 #0006; }
-.cs-card h2{ font-size:22px; margin:0 0 4px; } .cs-card p{ color:var(--texto-mute); margin:0 0 22px; font-size:14px; }
+/* ---------- Selección de personaje ---------- */
+.char-select{ position:fixed; inset:0; z-index:75; display:none; place-items:center; padding:24px; background:radial-gradient(120% 80% at 50% 0%, #2a2f38, #14161a); }
+.cs-card{ width:100%; max-width:440px; text-align:center; }
+.cs-logo{ display:inline-grid; place-items:center; width:62px; height:62px; border-radius:16px; background:var(--amarillo); color:var(--negro); font-size:32px; margin-bottom:12px; box-shadow:0 6px 0 #0006; }
+.cs-card h2{ font-size:21px; margin:0 0 4px; } .cs-card p{ color:var(--texto-mute); margin:0 0 20px; font-size:14px; }
 .cs-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
-.cs-grid button{ aspect-ratio:1; border-radius:18px; background:var(--concreto-2); border:1px solid #ffffff14; font-size:38px; box-shadow:var(--sombra); transition:transform .12s; }
-.cs-grid button:active{ transform:scale(.9); border-color:var(--amarillo); }
+.cs-grid .opt{ aspect-ratio:3/4; border-radius:16px; background:var(--concreto-2); border:1px solid #ffffff14; box-shadow:var(--sombra); display:grid; place-items:center; transition:transform .12s; }
+.cs-grid .opt:active{ transform:scale(.92); border-color:var(--amarillo); }
 
 .fly{ position:fixed; z-index:70; pointer-events:none; font-size:40px; transition:transform .55s cubic-bezier(.5,-.3,.6,1),opacity .55s; }
 @media (prefers-reduced-motion: reduce){ *{ animation:none !important; transition:none !important; scroll-behavior:auto !important; } }
@@ -168,59 +179,45 @@ button{ font-family:inherit; cursor:pointer; border:none; }
     <div class="logo signage">T</div>
     <div class="name"><b class="signage">TOTAL TOOLS</b><span>FERRETERÍA</span></div>
   </div>
-  <button class="ask-top" id="askTop">💬 Asesor</button>
 </header>
 
 <div class="section-banner">
   <div class="chip signage"><span id="pasilloLabel">PASILLO 03</span> · <b id="sectionName">ELÉCTRICAS</b></div>
-  <div class="hint">Desliza para recorrer →</div>
+  <div class="hint">Desliza ↔ y ↕</div>
 </div>
 
-<div class="stage" id="stage">
-  <div class="wall" id="wall"></div>
-  <div class="floor"><div class="line" id="floorLine"></div></div>
-  <div class="aisle" id="aisle"><div class="track" id="track"></div></div>
-
+<div class="stage">
+  <div class="world" id="world"></div>
   <div class="actors" id="actors">
-    <div class="player" id="player" aria-label="Tu personaje">
-      <span class="char" id="playerChar">🧑‍🔧</span><span class="cart">🛒</span><div class="shadow"></div>
-    </div>
+    <div class="player" id="player" aria-label="Tu personaje"><div class="figwrap" id="playerFig"></div><span class="cart">🛒</span><div class="shadow"></div></div>
     <div class="advisor" id="advisor" aria-label="Asesor TOTAL">
-      <div class="bubble" id="advisorBubble">¡Hola! ¿Qué buscas? ✨</div>
-      <span class="who">🦺</span><div class="shadow"></div><span class="tag">ASESOR</span>
+      <button class="ask-pill" id="askPill">🔍 Pregúntame</button>
+      <div class="figwrap" id="advisorFig"></div><div class="shadow"></div><span class="tag">ASESOR</span>
     </div>
   </div>
 </div>
 
 <button class="cart-fab" id="cartFab" aria-label="Ver carrito">🛒<span class="badge" id="cartBadge">0</span></button>
 
-<!-- Hoja de producto -->
+<!-- Hoja producto -->
 <div class="scrim" id="scrim"></div>
 <div class="sheet" id="sheet">
   <div class="grab"></div>
   <div class="sheet-top">
     <div class="ph" id="sheetPh">🛠️</div>
-    <div class="meta">
-      <div class="brandtag signage" id="sheetBrand">TOTAL</div>
-      <h2 id="sheetName">Producto</h2>
-      <div class="price mono" id="sheetPrice">S/ 0.00</div>
-    </div>
+    <div class="meta"><div class="brandtag signage" id="sheetBrand">TOTAL</div><h2 id="sheetName">Producto</h2><div class="price mono" id="sheetPrice">S/ 0.00</div></div>
   </div>
   <p class="desc" id="sheetDesc"></p>
-  <div class="actions">
-    <button class="btn-vid" id="sheetVid">▶ Ver video</button>
-    <button class="btn-add" id="sheetAdd">Echar al carrito</button>
-  </div>
+  <div class="actions"><button class="btn-vid" id="sheetVid">▶ Ver video</button><button class="btn-add" id="sheetAdd">Echar al carrito</button></div>
 </div>
 
-<!-- Asesor TOTAL -->
-<div class="scrim" id="scrimA"></div>
-<div class="sheet" id="advisorSheet">
-  <div class="grab"></div>
-  <div class="adv-head"><div class="av">🦺</div><div><b>Asesor TOTAL</b><small>Pregúntame o busca tu herramienta</small></div></div>
-  <div class="adv-msgs" id="advMsgs"></div>
-  <div class="adv-chips" id="advChips"></div>
-  <div class="adv-input"><input id="advText" placeholder="Ej: taladro, llaves, lo más barato…" autocomplete="off" /><button id="advSend" aria-label="Enviar">➤</button></div>
+<!-- Chat compacto -->
+<div class="chat-catch" id="chatCatch"></div>
+<div class="chat" id="chat">
+  <div class="chat-head"><div class="av">🦺</div><div><b>Asesor TOTAL</b><small>Pregúntame o busca tu herramienta</small></div><button class="x" id="chatX">✕</button></div>
+  <div class="chat-msgs" id="advMsgs"></div>
+  <div class="chat-chips" id="advChips"></div>
+  <div class="chat-input"><input id="advText" placeholder="Ej: taladro, llaves, lo más barato…" autocomplete="off" /><button id="advSend" aria-label="Enviar">➤</button></div>
 </div>
 
 <!-- Selección de personaje -->
@@ -234,240 +231,222 @@ button{ font-family:inherit; cursor:pointer; border:none; }
 </div>
 
 <script>
-/* ====== Datos del ecosistema ====== */
 TTDB.applyTheme();
 const RACKS = TTDB.racks();
 const PRODUCTOS = TTDB.productos();
 const soles = n => "S/ " + (Number(n)||0).toFixed(2);
 const norm = s => String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
 
-/* ====== Construir pasillos ====== */
-const track = document.getElementById("track");
+/* ====== Figuras de cuerpo completo ====== */
+function figHTML(c){
+  return `<div class="fig" style="--skin:${c.skin||'#e8b98c'};--shirt:${c.shirt};--pants:${c.pants||'#2b3a55'};--hatd:${c.hat?'block':'none'};--hatc:${c.hatc||'#f7b500'}">
+    <div class="hat"></div><div class="head"></div><div class="body${c.vest?' vest':''}"></div>
+    <div class="arm l"></div><div class="arm r"></div><div class="leg l"></div><div class="leg r"></div></div>`;
+}
+const PRESETS = [
+  {shirt:'#3b82f6',pants:'#1f2a44'}, {shirt:'#ef4444',pants:'#3a1f1f'},
+  {shirt:'#22c55e',pants:'#1f3a26',hat:true,hatc:'#f7b500'}, {shirt:'#a855f7',pants:'#2e1f3a'},
+  {shirt:'#f7b500',pants:'#3a3320',hat:true,hatc:'#ffffff'}, {shirt:'#14b8a6',pants:'#163a36'},
+  {shirt:'#f97316',pants:'#3a2616',hat:true,hatc:'#ffffff'}, {shirt:'#cbd5e1',pants:'#2b3a55'}
+];
+const ADVISOR = {shirt:'#f7b500',pants:'#1a1d23',hat:true,hatc:'#f97316',vest:true};
+document.getElementById("advisorFig").innerHTML = figHTML(ADVISOR);
+
+/* ====== Construir mundo 2D (categorías apiladas) ====== */
+const world = document.getElementById("world");
 function productCard(p){
-  const el = document.createElement("button");
-  el.className = "product"; el.dataset.id = p.id; el.setAttribute("aria-label", p.nombre);
+  const el = document.createElement("button"); el.className="product"; el.dataset.id=p.id; el.setAttribute("aria-label",p.nombre);
   const photo = p.foto ? `<img src="${p.foto}" alt="">` : p.emoji;
-  el.innerHTML = `<div class="photo">${photo}<span class="vid">▶ video</span></div>
-     <div class="pname">${p.nombre}</div><div class="ptag mono">${soles(p.precio)}</div>`;
-  el.addEventListener("click", () => openSheet(p));
+  el.innerHTML = `<div class="photo">${photo}<span class="vid">▶ video</span></div><div class="pname">${p.nombre}</div><div class="ptag mono">${soles(p.precio)}</div>`;
+  el.addEventListener("click", e => { e.stopPropagation(); openSheet(p); });
   return el;
 }
-function buildAisles(){
-  if(!RACKS.length){ track.innerHTML = `<div class="next-aisle"><div class="arrow">🧰</div><small>Aún no hay racks. Créalos en Admin.</small></div>`; return; }
+function buildWorld(){
+  if(!RACKS.length){ world.innerHTML = `<div class="aisle-band"><div class="shelves"><div class="shelf-empty">Aún no hay racks. Créalos en Admin.</div></div></div>`; return; }
   RACKS.slice().sort((a,b)=>a.pasillo-b.pasillo).forEach(rack => {
-    const group = document.createElement("div"); group.className = "rack-group";
-    group.dataset.rack = rack.id; group.dataset.name = rack.nombre; group.dataset.pasillo = rack.pasillo;
-    group.innerHTML = `<div class="group-tag signage">Pasillo ${String(rack.pasillo).padStart(2,"0")} · ${rack.nombre}</div>`;
-    rack.niveles.forEach((nivel, i) => {
+    const band = document.createElement("div"); band.className="aisle-band";
+    band.dataset.rack=rack.id; band.dataset.name=rack.nombre; band.dataset.pasillo=rack.pasillo;
+    band.innerHTML = `<div class="band-sign signage">Pasillo ${String(rack.pasillo).padStart(2,"0")} · ${rack.nombre}</div>`;
+    const shelves = document.createElement("div"); shelves.className="shelves";
+    rack.niveles.forEach((nivel,i) => {
       const prods = PRODUCTOS.filter(p => p.rackId===rack.id && (p.nivel===nivel || (!p.nivel && i===0)));
-      const shelf = document.createElement("div"); shelf.className = "shelf";
-      const row = document.createElement("div"); row.className = "shelf-row";
-      if(prods.length) prods.forEach(p => row.appendChild(productCard(p)));
-      else row.innerHTML = `<div class="shelf-empty">— estante vacío —</div>`;
-      const ledge = document.createElement("div"); ledge.className = "ledge";
-      shelf.appendChild(row); shelf.appendChild(ledge); group.appendChild(shelf);
+      const shelf=document.createElement("div"); shelf.className="shelf";
+      const row=document.createElement("div"); row.className="shelf-row";
+      if(prods.length) prods.forEach(p=>row.appendChild(productCard(p))); else row.innerHTML=`<div class="shelf-empty">— estante vacío —</div>`;
+      const ledge=document.createElement("div"); ledge.className="ledge";
+      shelf.appendChild(row); shelf.appendChild(ledge); shelves.appendChild(shelf);
     });
-    track.appendChild(group);
+    band.appendChild(shelves);
+    const floor=document.createElement("div"); floor.className="band-floor"; band.appendChild(floor);
+    world.appendChild(band);
   });
-  const next = document.createElement("div"); next.className = "next-aisle";
-  next.innerHTML = '<div class="arrow">✓</div><small>Fin de la tienda · agrega más racks en Admin</small>';
-  track.appendChild(next);
 }
-buildAisles();
+buildWorld();
+const bands = [...world.querySelectorAll(".aisle-band")];
 
-/* ====== Cámara ====== */
-const aisle = document.getElementById("aisle");
-const wall = document.getElementById("wall");
-const floorLine = document.getElementById("floorLine");
+/* ====== Cámara: banner + caminar ====== */
 const actors = document.getElementById("actors");
-const groups = [...track.querySelectorAll(".rack-group")];
 const sectionName = document.getElementById("sectionName");
 const pasilloLabel = document.getElementById("pasilloLabel");
 let ticking=false, walkTimer=null;
-
 function updateBanner(){
-  if(!groups.length) return;
-  const x = aisle.scrollLeft + aisle.clientWidth*0.3; let cur = groups[0];
-  for(const g of groups){ if(g.offsetLeft <= x) cur = g; }
-  sectionName.textContent = (cur.dataset.name||"").toUpperCase();
-  pasilloLabel.textContent = "PASILLO " + String(cur.dataset.pasillo).padStart(2,"0");
+  if(!bands.length) return;
+  let idx = Math.round(world.scrollTop / world.clientHeight);
+  idx = Math.max(0, Math.min(bands.length-1, idx));
+  const b = bands[idx];
+  sectionName.textContent = (b.dataset.name||"").toUpperCase();
+  pasilloLabel.textContent = "PASILLO " + String(b.dataset.pasillo).padStart(2,"0");
 }
-aisle.addEventListener("scroll", () => {
-  if(!ticking){
-    requestAnimationFrame(() => {
-      const x = aisle.scrollLeft;
-      wall.style.transform = "translateX(" + (-x*0.4) + "px)";
-      floorLine.style.transform = "translateX(" + (-x*1.2) + "px)";
-      updateBanner(); ticking=false;
-    });
-    ticking = true;
-  }
+world.addEventListener("scroll", () => {
+  if(!ticking){ requestAnimationFrame(()=>{ updateBanner(); ticking=false; }); ticking=true; }
   actors.classList.add("walking");
-  clearTimeout(walkTimer); walkTimer = setTimeout(() => actors.classList.remove("walking"), 140);
+  clearTimeout(walkTimer); walkTimer=setTimeout(()=>actors.classList.remove("walking"),150);
 }, { passive:true });
-aisle.addEventListener("wheel", e => { if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){ aisle.scrollLeft += e.deltaY; e.preventDefault(); } }, { passive:false });
-window.addEventListener("keydown", e => { if(e.key==="ArrowRight") aisle.scrollLeft+=180; if(e.key==="ArrowLeft") aisle.scrollLeft-=180; });
 updateBanner();
 
-/* ====== Llevar al cliente a un producto / pasillo ====== */
+/* Desktop: Shift+rueda = horizontal, flechas, y arrastrar para mover en 2D */
+world.addEventListener("wheel", e => { if(e.shiftKey){ world.scrollLeft += e.deltaY; e.preventDefault(); } }, { passive:false });
+window.addEventListener("keydown", e => {
+  if(e.key==="ArrowRight") world.scrollLeft+=160; if(e.key==="ArrowLeft") world.scrollLeft-=160;
+  if(e.key==="ArrowDown") world.scrollTop+=120; if(e.key==="ArrowUp") world.scrollTop-=120;
+});
+let drag=null;
+world.addEventListener("mousedown", e => { if(e.target.closest(".product")) return; drag={x:e.clientX,y:e.clientY,sl:world.scrollLeft,st:world.scrollTop}; world.classList.add("grabbing"); });
+window.addEventListener("mousemove", e => { if(!drag) return; world.scrollLeft=drag.sl-(e.clientX-drag.x); world.scrollTop=drag.st-(e.clientY-drag.y); });
+window.addEventListener("mouseup", () => { drag=null; world.classList.remove("grabbing"); });
+
+/* ====== Llevar a producto / pasillo ====== */
 function teleport(id){
-  const el = document.querySelector('.product[data-id="'+id+'"]'); if(!el) return;
-  closeAdvisor();
-  const aRect = aisle.getBoundingClientRect(), eRect = el.getBoundingClientRect();
-  const target = aisle.scrollLeft + (eRect.left - aRect.left) - aisle.clientWidth/2 + eRect.width/2;
-  aisle.scrollTo({ left: Math.max(0,target), behavior:"smooth" });
+  const el = world.querySelector('.product[data-id="'+id+'"]'); if(!el) return; closeChat();
+  const wRect=world.getBoundingClientRect(), eRect=el.getBoundingClientRect();
+  const top = world.scrollTop + (eRect.top-wRect.top) - world.clientHeight/2 + eRect.height/2;
+  const left= world.scrollLeft + (eRect.left-wRect.left) - world.clientWidth/2 + eRect.width/2;
+  world.scrollTo({ top:Math.max(0,top), left:Math.max(0,left), behavior:"smooth" });
   document.querySelectorAll(".product.spot").forEach(x=>x.classList.remove("spot"));
-  setTimeout(()=>{ el.classList.add("spot"); setTimeout(()=>el.classList.remove("spot"), 3000); }, 350);
+  setTimeout(()=>{ el.classList.add("spot"); setTimeout(()=>el.classList.remove("spot"),3000); }, 400);
 }
 function goPasillo(rackId){
-  const g = track.querySelector('.rack-group[data-rack="'+rackId+'"]'); if(!g) return;
-  closeAdvisor();
-  aisle.scrollTo({ left: Math.max(0, g.offsetLeft - 16), behavior:"smooth" });
+  const b = world.querySelector('.aisle-band[data-rack="'+rackId+'"]'); if(!b) return; closeChat();
+  world.scrollTo({ top:b.offsetTop, left:0, behavior:"smooth" });
 }
 
-/* ====== Hoja de producto ====== */
-const scrim = document.getElementById("scrim");
-const sheet = document.getElementById("sheet");
-let actual = null;
+/* ====== Hoja producto ====== */
+const scrim=document.getElementById("scrim"), sheet=document.getElementById("sheet"); let actual=null;
 function openSheet(p){
-  actual = p;
-  document.getElementById("sheetPh").innerHTML = p.foto ? `<img src="${p.foto}" alt="">` : p.emoji;
-  document.getElementById("sheetBrand").textContent = p.marca || "TOTAL";
-  document.getElementById("sheetName").textContent = p.nombre;
-  document.getElementById("sheetPrice").textContent = soles(p.precio);
-  document.getElementById("sheetDesc").textContent = p.desc || "";
+  actual=p;
+  document.getElementById("sheetPh").innerHTML = p.foto?`<img src="${p.foto}" alt="">`:p.emoji;
+  document.getElementById("sheetBrand").textContent=p.marca||"TOTAL";
+  document.getElementById("sheetName").textContent=p.nombre;
+  document.getElementById("sheetPrice").textContent=soles(p.precio);
+  document.getElementById("sheetDesc").textContent=p.desc||"";
   scrim.classList.add("open"); sheet.classList.add("open");
 }
 function closeSheet(){ scrim.classList.remove("open"); sheet.classList.remove("open"); }
 scrim.addEventListener("click", closeSheet);
-document.getElementById("sheetVid").addEventListener("click", () => {
-  if(actual && actual.video) window.open(actual.video, "_blank");
-  else toast("🎬 Este producto aún no tiene video (se agrega en Admin).");
-});
-document.getElementById("sheetAdd").addEventListener("click", () => {
-  if(actual){ Cart.add(actual); flyToCart(document.getElementById("sheetPh"), actual.emoji||"📦"); }
-  closeSheet();
-});
+document.getElementById("sheetVid").addEventListener("click", ()=>{ if(actual&&actual.video) window.open(actual.video,"_blank"); else toast("🎬 Sin video aún (se agrega en Admin)."); });
+document.getElementById("sheetAdd").addEventListener("click", ()=>{ if(actual){ Cart.add(actual); flyToCart(document.getElementById("sheetPh"), actual.emoji||"📦"); } closeSheet(); });
 
-/* ====== ASESOR TOTAL (reglas; IA se enchufa después) ====== */
-const scrimA = document.getElementById("scrimA");
-const advisorSheet = document.getElementById("advisorSheet");
-const advMsgs = document.getElementById("advMsgs");
-let advGreeted = false;
-function openAdvisor(){
-  scrimA.classList.add("open"); advisorSheet.classList.add("open");
-  if(!advGreeted){ advGreeted = true;
+/* ====== Asesor (chat compacto) ====== */
+const chat=document.getElementById("chat"), chatCatch=document.getElementById("chatCatch"), advMsgs=document.getElementById("advMsgs");
+let advGreeted=false;
+function openChat(){
+  chat.classList.add("open"); chatCatch.classList.add("open");
+  if(!advGreeted){ advGreeted=true;
     botSay("¡Hola! 👷 Soy tu asesor. Dime qué necesitas (ej. <b>taladro</b>, <b>llaves</b>) o pídeme <b>lo más barato</b> y te llevo al estante.");
     renderChips();
   }
+  setTimeout(()=>document.getElementById("advText").focus(), 250);
 }
-function closeAdvisor(){ scrimA.classList.remove("open"); advisorSheet.classList.remove("open"); }
-scrimA.addEventListener("click", closeAdvisor);
-document.getElementById("askTop").addEventListener("click", openAdvisor);
-document.getElementById("advisor").addEventListener("click", openAdvisor);
-
+function closeChat(){ chat.classList.remove("open"); chatCatch.classList.remove("open"); }
+chatCatch.addEventListener("click", closeChat);
+document.getElementById("chatX").addEventListener("click", closeChat);
+document.getElementById("askPill").addEventListener("click", e=>{ e.stopPropagation(); openChat(); });
+document.getElementById("advisor").addEventListener("click", openChat);
 function botSay(html){ const d=document.createElement("div"); d.className="msg bot"; d.innerHTML=html; advMsgs.appendChild(d); advMsgs.scrollTop=advMsgs.scrollHeight; return d; }
-function meSay(text){ const d=document.createElement("div"); d.className="msg me"; d.textContent=text; advMsgs.appendChild(d); advMsgs.scrollTop=advMsgs.scrollHeight; }
+function meSay(t){ const d=document.createElement("div"); d.className="msg me"; d.textContent=t; advMsgs.appendChild(d); advMsgs.scrollTop=advMsgs.scrollHeight; }
 function renderChips(){
-  const chips = document.getElementById("advChips"); chips.innerHTML="";
-  const add=(t,fn)=>{ const b=document.createElement("button"); b.className="adv-chip"; b.textContent=t; b.addEventListener("click",fn); chips.appendChild(b); };
-  RACKS.slice().sort((a,b)=>a.pasillo-b.pasillo).forEach(r => add("📍 "+r.nombre, ()=>{ meSay(r.nombre); answer("pasillo:"+r.id); }));
+  const chips=document.getElementById("advChips"); chips.innerHTML="";
+  const add=(t,fn)=>{ const b=document.createElement("button"); b.className="chat-chip"; b.textContent=t; b.addEventListener("click",fn); chips.appendChild(b); };
+  RACKS.slice().sort((a,b)=>a.pasillo-b.pasillo).forEach(r=>add("📍 "+r.nombre, ()=>{ meSay(r.nombre); answer("pasillo:"+r.id); }));
   add("💰 Lo más barato", ()=>{ meSay("Lo más barato"); answer("barato"); });
 }
 function resultCard(p){
-  const photo = p.foto ? `<img src="${p.foto}">` : (p.emoji||"📦");
+  const photo=p.foto?`<img src="${p.foto}">`:(p.emoji||"📦");
   const d=document.createElement("div"); d.className="res";
   d.innerHTML=`<div class="e">${photo}</div><div class="i"><b>${p.nombre}</b><span class="mono">${soles(p.precio)}</span></div><button class="go">Ir 📍</button>`;
-  d.querySelector(".go").addEventListener("click", ()=>teleport(p.id));
-  return d;
+  d.querySelector(".go").addEventListener("click", ()=>teleport(p.id)); return d;
 }
-function showResults(intro, list){
+function showResults(intro,list){
   botSay(intro);
-  if(!list.length){ botSay("No encontré nada con eso 🤔. Prueba con: <b>taladro</b>, <b>amoladora</b>, <b>llaves</b>, <b>cinta</b>."); return; }
-  const wrap = advMsgs.lastChild;
-  list.slice(0,5).forEach(p => wrap.appendChild(resultCard(p)));
-  advMsgs.scrollTop = advMsgs.scrollHeight;
+  if(!list.length){ botSay("No encontré nada 🤔. Prueba: <b>taladro</b>, <b>amoladora</b>, <b>llaves</b>, <b>cinta</b>."); return; }
+  const wrap=advMsgs.lastChild; list.slice(0,6).forEach(p=>wrap.appendChild(resultCard(p))); advMsgs.scrollTop=advMsgs.scrollHeight;
 }
-function buscar(q){
-  const n = norm(q);
-  let r = PRODUCTOS.filter(p => norm(p.nombre+" "+(p.marca||"")+" "+(p.desc||"")).includes(n));
-  if(!r.length){ const toks = n.split(/\s+/).filter(Boolean);
-    r = PRODUCTOS.filter(p => toks.some(t => norm(p.nombre+" "+(p.marca||"")+" "+(p.desc||"")).includes(t))); }
+function buscar(q){ const n=norm(q);
+  let r=PRODUCTOS.filter(p=>norm(p.nombre+" "+(p.marca||"")+" "+(p.desc||"")).includes(n));
+  if(!r.length){ const toks=n.split(/\s+/).filter(Boolean); r=PRODUCTOS.filter(p=>toks.some(t=>norm(p.nombre+" "+(p.marca||"")+" "+(p.desc||"")).includes(t))); }
   return r;
 }
 function answer(raw){
-  const q = String(raw||"").trim(); const n = norm(q);
-  if(q.startsWith("pasillo:")){ const id=q.slice(8); const r=RACKS.find(x=>x.id===id);
-    showResults("Te llevo al <b>Pasillo "+String(r.pasillo).padStart(2,"0")+" · "+r.nombre+"</b> 👇", PRODUCTOS.filter(p=>p.rackId===id));
-    goPasillo(id); return; }
-  if(!n){ return; }
+  const q=String(raw||"").trim(), n=norm(q);
+  if(q.startsWith("pasillo:")){ const id=q.slice(8), r=RACKS.find(x=>x.id===id);
+    showResults("Te llevo al <b>Pasillo "+String(r.pasillo).padStart(2,"0")+" · "+r.nombre+"</b> 👇", PRODUCTOS.filter(p=>p.rackId===id)); goPasillo(id); return; }
+  if(!n) return;
   if(/(hola|buenas|hey|alo|saludos)/.test(n)){ botSay("¡Hola! 👋 ¿Qué herramienta buscas?"); return; }
-  if(/(gracias|grac)/.test(n)){ botSay("¡Con gusto! 🙌 ¿Algo más?"); return; }
-  if(/(barat|economic|menor precio|mas barato)/.test(n)){
-    const ord = PRODUCTOS.slice().sort((a,b)=>a.precio-b.precio);
-    showResults("Lo más económico ahora 💰:", ord); return; }
-  // ¿es un pasillo por nombre?
-  const rack = RACKS.find(r => n.includes(norm(r.nombre)));
+  if(/(gracias)/.test(n)){ botSay("¡Con gusto! 🙌 ¿Algo más?"); return; }
+  if(/(barat|economic|menor precio)/.test(n)){ showResults("Lo más económico ahora 💰:", PRODUCTOS.slice().sort((a,b)=>a.precio-b.precio)); return; }
+  const rack=RACKS.find(r=>n.includes(norm(r.nombre)));
   if(rack && buscar(q).length===0){ answer("pasillo:"+rack.id); return; }
   showResults("Esto encontré 🔧:", buscar(q));
 }
 document.getElementById("advSend").addEventListener("click", sendAdv);
-document.getElementById("advText").addEventListener("keydown", e => { if(e.key==="Enter") sendAdv(); });
-function sendAdv(){ const i=document.getElementById("advText"); const v=i.value.trim(); if(!v) return; meSay(v); i.value=""; answer(v); }
+document.getElementById("advText").addEventListener("keydown", e=>{ if(e.key==="Enter") sendAdv(); });
+function sendAdv(){ const i=document.getElementById("advText"), v=i.value.trim(); if(!v) return; meSay(v); i.value=""; answer(v); }
 
 /* ====== Carrito -> Caja ====== */
 const Cart = (() => {
-  const items = new Map();
-  const fab = document.getElementById("cartFab");
-  const badge = document.getElementById("cartBadge");
-  function add(p){ const c = items.get(p.id) || { producto:p, qty:0 }; c.qty++; items.set(p.id,c); render(); bump(); beep(); }
+  const items=new Map(), fab=document.getElementById("cartFab"), badge=document.getElementById("cartBadge");
+  function add(p){ const c=items.get(p.id)||{producto:p,qty:0}; c.qty++; items.set(p.id,c); render(); bump(); beep(); }
   function totalQty(){ let q=0; items.forEach(i=>q+=i.qty); return q; }
-  function render(){ const q=totalQty(); badge.textContent=q; badge.classList.toggle("show", q>0); }
+  function render(){ const q=totalQty(); badge.textContent=q; badge.classList.toggle("show",q>0); }
   function bump(){ fab.classList.remove("bump"); void fab.offsetWidth; fab.classList.add("bump"); }
   function goCaja(){
     if(totalQty()===0){ toast("Tu carrito está vacío 🧰"); return; }
-    const arr = [...items.values()].map(i => ({ id:i.producto.id, nombre:i.producto.nombre, emoji:i.producto.emoji||"📦", foto:i.producto.foto||"", precio:i.producto.precio, qty:i.qty }));
-    TTDB.setCart(arr); window.location.href = "caja.html";
+    TTDB.setCart([...items.values()].map(i=>({id:i.producto.id,nombre:i.producto.nombre,emoji:i.producto.emoji||"📦",foto:i.producto.foto||"",precio:i.producto.precio,qty:i.qty})));
+    window.location.href="caja.html";
   }
-  fab.addEventListener("click", goCaja); render();
-  return { add };
+  fab.addEventListener("click", goCaja); render(); return { add };
 })();
 
 /* ====== Selección de personaje ====== */
-const CHARS = ["🧑‍🔧","👷‍♂️","👷‍♀️","🧑‍🦱","🧔","👩‍🦰","🦸","🧑‍🎤"];
-const charSelect = document.getElementById("charSelect");
-const playerChar = document.getElementById("playerChar");
-const advisorBubble = document.getElementById("advisorBubble");
-function showBubble(){ advisorBubble.classList.add("show"); setTimeout(()=>advisorBubble.classList.remove("show"), 5000); }
+const charSelect=document.getElementById("charSelect"), playerFig=document.getElementById("playerFig");
 function openCharSelect(){
-  const grid = document.getElementById("csGrid"); grid.innerHTML="";
-  CHARS.forEach(c => { const b=document.createElement("button"); b.textContent=c; b.addEventListener("click", ()=>pickChar(c)); grid.appendChild(b); });
-  charSelect.style.display = "grid";
+  const grid=document.getElementById("csGrid"); grid.innerHTML="";
+  PRESETS.forEach((c,idx)=>{ const b=document.createElement("button"); b.className="opt"; b.innerHTML=figHTML(c); b.addEventListener("click",()=>pickChar(idx)); grid.appendChild(b); });
+  charSelect.style.display="grid";
 }
-function pickChar(c){ playerChar.textContent=c; try{ localStorage.setItem("tt_char", c); }catch(e){} charSelect.style.display="none"; showBubble(); }
+function pickChar(idx){ const c=PRESETS[idx]; playerFig.innerHTML=figHTML(c); try{ localStorage.setItem("tt_char",String(idx)); }catch(e){} charSelect.style.display="none"; setTimeout(openChat,300); }
 document.getElementById("player").addEventListener("click", openCharSelect);
 (function initChar(){
-  let saved=null; try{ saved=localStorage.getItem("tt_char"); }catch(e){}
-  if(saved){ playerChar.textContent=saved; setTimeout(showBubble, 700); }
+  let idx=null; try{ const s=localStorage.getItem("tt_char"); if(s!==null) idx=parseInt(s,10); }catch(e){}
+  if(idx!==null && PRESETS[idx]){ playerFig.innerHTML=figHTML(PRESETS[idx]); setTimeout(openChat,600); }
   else openCharSelect();
 })();
 
 /* ====== Sonido + animación + aviso ====== */
 let actx=null;
-function beep(){ try{ actx = actx || new (window.AudioContext||window.webkitAudioContext)();
-  const o=actx.createOscillator(), g=actx.createGain(); o.type="triangle";
+function beep(){ try{ actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+  const o=actx.createOscillator(),g=actx.createGain(); o.type="triangle";
   o.frequency.setValueAtTime(660,actx.currentTime); o.frequency.exponentialRampToValueAtTime(990,actx.currentTime+.08);
   g.gain.setValueAtTime(.12,actx.currentTime); g.gain.exponentialRampToValueAtTime(.0001,actx.currentTime+.18);
   o.connect(g); g.connect(actx.destination); o.start(); o.stop(actx.currentTime+.18); }catch(e){} }
-function flyToCart(fromEl, emoji){
+function flyToCart(fromEl,emoji){
   if(matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  const r = fromEl.getBoundingClientRect(), fab = document.getElementById("cartFab").getBoundingClientRect();
-  const f = document.createElement("div"); f.className="fly"; f.textContent=emoji;
-  f.style.left = r.left + r.width/2 - 20 + "px"; f.style.top = r.top + r.height/2 - 20 + "px";
-  document.body.appendChild(f);
-  requestAnimationFrame(() => { const dx=(fab.left+fab.width/2)-(r.left+r.width/2), dy=(fab.top+fab.height/2)-(r.top+r.height/2);
+  const r=fromEl.getBoundingClientRect(), fab=document.getElementById("cartFab").getBoundingClientRect();
+  const f=document.createElement("div"); f.className="fly"; f.textContent=emoji;
+  f.style.left=r.left+r.width/2-20+"px"; f.style.top=r.top+r.height/2-20+"px"; document.body.appendChild(f);
+  requestAnimationFrame(()=>{ const dx=(fab.left+fab.width/2)-(r.left+r.width/2), dy=(fab.top+fab.height/2)-(r.top+r.height/2);
     f.style.transform="translate("+dx+"px,"+dy+"px) scale(.25)"; f.style.opacity="0"; });
-  setTimeout(() => f.remove(), 600);
+  setTimeout(()=>f.remove(),600);
 }
 let toastTimer=null;
 function toast(text){
@@ -475,8 +454,7 @@ function toast(text){
   if(!t){ t=document.createElement("div"); t.id="__toast";
     t.style.cssText="position:fixed;left:50%;bottom:96px;transform:translateX(-50%);z-index:80;background:#000d;color:#fff;padding:12px 18px;border-radius:12px;font-size:14px;max-width:80vw;text-align:center;box-shadow:0 8px 24px #000a;transition:opacity .25s;opacity:0;";
     document.body.appendChild(t); }
-  t.textContent=text; t.style.opacity="1";
-  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.style.opacity="0",2600);
+  t.textContent=text; t.style.opacity="1"; clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.style.opacity="0",2600);
 }
 </script>
 </body>
