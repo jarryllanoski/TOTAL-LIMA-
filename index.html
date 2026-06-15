@@ -12,7 +12,7 @@
 <style>
 /* ============================================================
    TOTAL TOOLS · Tienda jugable
-   Cámara con colisión (solo pasillos) + arrastre de estante
+   Plano 2D real · góndolas en cruz · cámara central · movimiento libre
    ============================================================ */
 :root{
   --concreto:#1a1d23; --concreto-2:#23272f;
@@ -42,28 +42,29 @@ button{ font-family:inherit; cursor:pointer; border:none; }
 .section-banner .chip b{ font-size:14px; }
 .section-banner .hint{ margin-left:auto; font-size:11px; color:#14161a; background:#ffffffcc; padding:3px 9px; border-radius:999px; font-weight:700; }
 
-/* ---------- Plano 2D (cámara por transform) ---------- */
+/* ---------- Plano 2D ---------- */
 .stage{ position:fixed; inset:94px 0 0 0; overflow:hidden; }
-.world{ position:absolute; inset:0; overflow:hidden; cursor:grab; touch-action:none;
-  background:repeating-linear-gradient(0deg,#f7b5001a 0 3px,#0000 3px 30px), repeating-linear-gradient(90deg,#f7b5001a 0 3px,#0000 3px 30px), linear-gradient(#1c2026,#15171c); }
+.world{ position:absolute; inset:0; overflow:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; cursor:grab; background:#15171c; }
 .world.grabbing{ cursor:grabbing; }
-.store-grid{ position:absolute; top:0; left:0; transform-origin:0 0; will-change:transform; display:grid; gap:104px; padding:120px; }
-.store-grid.smooth{ transition:transform .5s cubic-bezier(.2,.8,.2,1); }
+.world::-webkit-scrollbar{ display:none; }
+.store-grid{ display:grid; gap:96px; padding:120px 96px; width:max-content;
+  background:
+    repeating-linear-gradient(0deg,#f7b5001f 0 3px,#0000 3px,#0000 30px),
+    repeating-linear-gradient(90deg,#f7b5001f 0 3px,#0000 3px,#0000 30px),
+    repeating-linear-gradient(90deg,#ffffff08 0 2px,#0000 2px 46px),
+    linear-gradient(#1c2026,#15171c); }
 
 .stand{ position:relative; background:radial-gradient(circle at center,#0000 2px,#00000022 3px) 0 0/24px 24px, linear-gradient(180deg,var(--pegboard),var(--pegboard-2));
-  background-blend-mode:multiply,normal; border:3px solid #00000044; border-radius:16px; padding:10px 12px 14px; box-shadow:0 16px 34px #0009; }
+  background-blend-mode:multiply,normal; border:3px solid #00000044; border-radius:16px; padding:10px 14px 16px; box-shadow:0 16px 34px #0009; }
 .stand-sign{ display:inline-block; background:#14161a; color:var(--amarillo); border:1px solid #ffffff22; font-size:13px;
-  padding:4px 11px; border-radius:8px; margin:0 0 8px 2px; white-space:nowrap; box-shadow:0 3px 10px #0006; }
-.stand-scroll{ max-width:268px; max-height:300px; overflow:auto; scrollbar-width:none; touch-action:pan-x pan-y; border-radius:10px; }
-.stand-scroll::-webkit-scrollbar{ display:none; }
-.shelf-row{ display:flex; gap:14px; align-items:flex-end; padding:0 2px 5px; width:max-content; }
-.ledge{ height:14px; width:100%; min-width:100%; background:linear-gradient(180deg,var(--madera),var(--madera-2)); border-radius:3px; box-shadow:0 7px 14px #0007, inset 0 2px 0 #ffffff22; margin-bottom:12px; }
-.stand-empty{ color:#00000055; font-size:12px; padding:24px 14px; max-width:240px; }
-.stand-scroll-hint{ position:absolute; right:8px; bottom:6px; font-size:10px; color:#00000055; background:#ffffff55; padding:1px 6px; border-radius:6px; pointer-events:none; }
+  padding:4px 11px; border-radius:8px; margin:0 0 10px 2px; white-space:nowrap; box-shadow:0 3px 10px #0006; }
+.shelf-row{ display:flex; gap:14px; align-items:flex-end; padding:0 2px 5px; }
+.ledge{ height:14px; background:linear-gradient(180deg,var(--madera),var(--madera-2)); border-radius:3px; box-shadow:0 7px 14px #0007, inset 0 2px 0 #ffffff22; margin-bottom:14px; }
+.stand-empty{ color:#00000055; font-size:12px; padding:30px 16px; }
 
-.product{ width:108px; flex:0 0 auto; display:flex; flex-direction:column; gap:5px; cursor:pointer; transform-origin:bottom center; transition:transform .18s ease; background:none; }
+.product{ width:112px; flex:0 0 auto; display:flex; flex-direction:column; gap:5px; cursor:pointer; transform-origin:bottom center; transition:transform .18s ease; background:none; }
 .product:active{ transform:translateY(-3px) scale(1.04); }
-.product .photo{ height:78px; border-radius:11px; display:grid; place-items:center; font-size:38px; overflow:hidden;
+.product .photo{ height:80px; border-radius:11px; display:grid; place-items:center; font-size:40px; overflow:hidden;
   background:radial-gradient(circle at 50% 35%,#ffffff14,#0000), linear-gradient(160deg,#2f343d,#202329); border:1px solid #ffffff10; box-shadow:var(--sombra); position:relative; }
 .product .photo img{ width:100%; height:100%; object-fit:cover; }
 .product .photo .vid{ position:absolute; top:5px; right:5px; font-size:10px; background:#000a; color:#fff; padding:2px 6px; border-radius:6px; }
@@ -72,12 +73,13 @@ button{ font-family:inherit; cursor:pointer; border:none; }
 .product.spot .photo{ box-shadow:0 0 0 3px var(--amarillo), 0 0 26px #f7b50099, var(--sombra); animation:spot 1.4s ease 2; }
 @keyframes spot{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-8px); } }
 
+/* hint */
 .walk-hint{ position:fixed; left:50%; transform:translateX(-50%); bottom:calc(20px + var(--safe-b)); z-index:42;
-  background:#14161aee; color:#fff; border:1px solid #ffffff1c; border-radius:999px; padding:9px 16px; font-size:12.5px; font-weight:600;
-  box-shadow:var(--sombra); transition:opacity .4s; max-width:92vw; text-align:center; }
+  background:#14161aee; color:#fff; border:1px solid #ffffff1c; border-radius:999px; padding:9px 16px; font-size:13px; font-weight:600;
+  box-shadow:var(--sombra); transition:opacity .4s; }
 .walk-hint.hide{ opacity:0; pointer-events:none; }
 
-/* Actores */
+/* ---------- Actores (cámara central) ---------- */
 .actors{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); z-index:20; display:flex; align-items:flex-end; gap:2px; pointer-events:none; }
 .player,.advisor{ position:relative; display:flex; align-items:flex-end; pointer-events:auto; cursor:pointer; }
 .advisor{ margin-left:12px; }
@@ -167,7 +169,7 @@ button{ font-family:inherit; cursor:pointer; border:none; }
 .cs-grid .opt:active{ transform:scale(.92); border-color:var(--amarillo); }
 
 .fly{ position:fixed; z-index:70; pointer-events:none; font-size:40px; transition:transform .55s cubic-bezier(.5,-.3,.6,1),opacity .55s; }
-@media (prefers-reduced-motion: reduce){ .figwrap,.actors *{ animation:none !important; } }
+@media (prefers-reduced-motion: reduce){ *{ animation:none !important; transition:none !important; scroll-behavior:auto !important; } }
 </style>
 </head>
 <body>
@@ -177,7 +179,7 @@ button{ font-family:inherit; cursor:pointer; border:none; }
 </header>
 
 <div class="section-banner">
-  <div class="chip signage"><span id="pasilloLabel">PASILLO</span> · <b id="sectionName">TIENDA</b></div>
+  <div class="chip signage"><span id="pasilloLabel">PASILLO 03</span> · <b id="sectionName">ELÉCTRICAS</b></div>
   <div class="hint">Camina por la tienda</div>
 </div>
 
@@ -195,7 +197,7 @@ button{ font-family:inherit; cursor:pointer; border:none; }
   </div>
 </div>
 
-<div class="walk-hint" id="walkHint">🚶 Pisa el pasillo y arrastra para caminar · pisa una góndola para mover sus herramientas</div>
+<div class="walk-hint" id="walkHint">🚶 Arrastra o desliza para caminar por los pasillos</div>
 
 <button class="cart-fab" id="cartFab" aria-label="Ver carrito">🛒<span class="badge" id="cartBadge">0</span></button>
 
@@ -234,114 +236,82 @@ function figHTML(c){ return `<div class="fig" style="--skin:${c.skin||'#e8b98c'}
 const PRESETS=[{shirt:'#3b82f6',pants:'#1f2a44'},{shirt:'#ef4444',pants:'#3a1f1f'},{shirt:'#22c55e',pants:'#1f3a26',hat:true,hatc:'#f7b500'},{shirt:'#a855f7',pants:'#2e1f3a'},{shirt:'#f7b500',pants:'#3a3320',hat:true,hatc:'#ffffff'},{shirt:'#14b8a6',pants:'#163a36'},{shirt:'#f97316',pants:'#3a2616',hat:true,hatc:'#ffffff'},{shirt:'#cbd5e1',pants:'#2b3a55'}];
 document.getElementById("advisorFig").innerHTML = figHTML({shirt:'#f7b500',pants:'#1a1d23',hat:true,hatc:'#f97316',vest:true});
 
-/* ====== Construir góndolas ====== */
+/* ====== Plano de tienda: góndolas en cuadrícula ====== */
 const world=document.getElementById("world"), grid=document.getElementById("grid");
 function productCard(p){
   const el=document.createElement("button"); el.className="product"; el.dataset.id=p.id; el.setAttribute("aria-label",p.nombre);
   const photo=p.foto?`<img src="${p.foto}" alt="">`:p.emoji;
   el.innerHTML=`<div class="photo">${photo}<span class="vid">▶ video</span></div><div class="pname">${p.nombre}</div><div class="ptag mono">${soles(p.precio)}</div>`;
-  el.addEventListener("click", e=>{ e.stopPropagation(); if(!moved) openSheet(p); }); return el;
+  el.addEventListener("click", e=>{ e.stopPropagation(); openSheet(p); }); return el;
 }
 function buildStore(){
-  const cols = RACKS.length<=1?1:(RACKS.length<=4?2:3);
+  const cols = RACKS.length<=1 ? 1 : 2;
   grid.style.gridTemplateColumns = `repeat(${cols}, max-content)`;
   RACKS.slice().sort((a,b)=>a.pasillo-b.pasillo).forEach(rack=>{
-    const prods=PRODUCTOS.filter(p=>p.rackId===rack.id);
+    const prods = PRODUCTOS.filter(p=>p.rackId===rack.id);
     const stand=document.createElement("div"); stand.className="stand";
     stand.dataset.rack=rack.id; stand.dataset.name=rack.nombre; stand.dataset.pasillo=rack.pasillo;
     stand.innerHTML=`<div class="stand-sign signage">Pasillo ${String(rack.pasillo).padStart(2,"0")} · ${rack.nombre}</div>`;
     if(!prods.length){ stand.innerHTML+=`<div class="stand-empty">— estante vacío · agrega productos en Admin —</div>`; }
-    else{
-      const sc=document.createElement("div"); sc.className="stand-scroll";
-      chunk(prods,3).forEach(fila=>{ const row=document.createElement("div"); row.className="shelf-row";
-        fila.forEach(p=>row.appendChild(productCard(p))); const ledge=document.createElement("div"); ledge.className="ledge";
-        sc.appendChild(row); sc.appendChild(ledge); });
-      stand.appendChild(sc);
-      if(prods.length>3){ const h=document.createElement("div"); h.className="stand-scroll-hint"; h.textContent="desliza ↕↔"; stand.appendChild(h); }
-    }
+    else chunk(prods,3).forEach(fila=>{
+      const row=document.createElement("div"); row.className="shelf-row";
+      fila.forEach(p=>row.appendChild(productCard(p)));
+      const ledge=document.createElement("div"); ledge.className="ledge"; ledge.style.width="100%";
+      stand.appendChild(row); stand.appendChild(ledge);
+    });
     grid.appendChild(stand);
   });
 }
 buildStore();
 const stands=[...grid.querySelectorAll(".stand")];
+/* Empezar centrado en la primera góndola */
+if(stands[0]){ const s=stands[0];
+  world.scrollLeft = s.offsetLeft + s.offsetWidth/2 - world.clientWidth/2;
+  world.scrollTop  = s.offsetTop - 30;
+}
 
-/* ====== Motor de cámara con colisión (solo pasillos) ====== */
+/* ====== Cámara: banner + caminar ====== */
 const actors=document.getElementById("actors");
 const sectionName=document.getElementById("sectionName"), pasilloLabel=document.getElementById("pasilloLabel");
-let camX=0, camY=0, stageW=0, stageH=0, gridW=0, gridH=0, rects=[], moved=false, walkTimer=null;
-const MARGIN=26;
-
-function measure(){
-  stageW=world.clientWidth; stageH=world.clientHeight;
-  gridW=grid.scrollWidth; gridH=grid.scrollHeight;
-  rects=stands.map(s=>({x:s.offsetLeft,y:s.offsetTop,w:s.offsetWidth,h:s.offsetHeight}));
+let ticking=false, walkTimer=null;
+function updateBanner(){
+  if(!stands.length) return;
+  const cx=world.scrollLeft+world.clientWidth/2, cy=world.scrollTop+world.clientHeight/2;
+  let best=stands[0], bd=1e12;
+  stands.forEach(s=>{ const dx=(s.offsetLeft+s.offsetWidth/2)-cx, dy=(s.offsetTop+s.offsetHeight/2)-cy; const d=dx*dx+dy*dy; if(d<bd){ bd=d; best=s; } });
+  sectionName.textContent=(best.dataset.name||"").toUpperCase(); pasilloLabel.textContent="PASILLO "+String(best.dataset.pasillo).padStart(2,"0");
 }
-function resolveCollision(x,y){
-  for(let pass=0; pass<3; pass++){ for(const r of rects){
-    const l=r.x-MARGIN, t=r.y-MARGIN, rr=r.x+r.w+MARGIN, bb=r.y+r.h+MARGIN;
-    if(x>l && x<rr && y>t && y<bb){
-      const dl=x-l, dr=rr-x, dt=y-t, db=bb-y, mn=Math.min(dl,dr,dt,db);
-      if(mn===dl) x=l; else if(mn===dr) x=rr; else if(mn===dt) y=t; else y=bb;
-    }
-  }}
-  return [x,y];
-}
-function setCam(x,y,collide){
-  if(collide!==false){ [x,y]=resolveCollision(x,y); }
-  camX=Math.max(20,Math.min(Math.max(20,gridW-20),x));
-  camY=Math.max(20,Math.min(Math.max(20,gridH-20),y));
-  grid.style.transform=`translate(${Math.round(stageW/2-camX)}px,${Math.round(stageH/2-camY)}px)`;
-}
-function walk(){ actors.classList.add("walking"); clearTimeout(walkTimer); walkTimer=setTimeout(()=>actors.classList.remove("walking"),150); }
-function updateBanner(){ if(!rects.length) return; let bi=0,bd=1e15;
-  rects.forEach((r,i)=>{ const dx=(r.x+r.w/2)-camX, dy=(r.y+r.h/2)-camY, d=dx*dx+dy*dy; if(d<bd){ bd=d; bi=i; } });
-  sectionName.textContent=(stands[bi].dataset.name||"").toUpperCase(); pasilloLabel.textContent="PASILLO "+String(stands[bi].dataset.pasillo).padStart(2,"0"); }
-
-measure();
-if(stands[0]){ const r=rects[0]; setCam(r.x+r.w/2, r.y+r.h/2); } updateBanner();
-window.addEventListener("resize", ()=>{ measure(); setCam(camX,camY,false); });
-
-/* Arrastre contextual: piso = caminar (cámara) · góndola = mover herramientas */
-let dragMode=null, start=null;
-function pointFromEvent(e){ const t=e.touches?e.touches[0]:e; return {x:t.clientX,y:t.clientY}; }
-function down(e){
-  const panel=e.target.closest(".stand-scroll");
-  moved=false;
-  if(panel){ const p=pointFromEvent(e); dragMode={t:"panel",el:panel,sl:panel.scrollLeft,st:panel.scrollTop}; start=p; return; }
-  if(e.target.closest(".actors")) { dragMode=null; return; }
-  const p=pointFromEvent(e); dragMode={t:"cam",cx:camX,cy:camY}; start=p; world.classList.add("grabbing");
-  if(e.cancelable && e.touches) e.preventDefault();
-}
-function move(e){
-  if(!dragMode||!start) return;
-  const p=pointFromEvent(e); const dx=p.x-start.x, dy=p.y-start.y;
-  if(Math.abs(dx)>4||Math.abs(dy)>4) moved=true;
-  if(dragMode.t==="panel"){ dragMode.el.scrollLeft=dragMode.sl-dx; dragMode.el.scrollTop=dragMode.st-dy; }
-  else{ setCam(dragMode.cx-dx, dragMode.cy-dy); walk(); updateBanner(); }
-  if(e.cancelable && e.touches) e.preventDefault();
-}
-function up(){ dragMode=null; start=null; world.classList.remove("grabbing"); }
-world.addEventListener("mousedown", down); window.addEventListener("mousemove", move); window.addEventListener("mouseup", up);
-world.addEventListener("touchstart", down, {passive:false}); world.addEventListener("touchmove", move, {passive:false}); world.addEventListener("touchend", up);
-
-world.addEventListener("wheel", e=>{ if(e.target.closest(".stand-scroll")) return; if(e.shiftKey) setCam(camX+e.deltaY,camY); else setCam(camX,camY+e.deltaY); walk(); updateBanner(); e.preventDefault(); }, {passive:false});
-window.addEventListener("keydown", e=>{ const k=e.key.toLowerCase(); let dx=0,dy=0;
-  if(k==="arrowright"||k==="d") dx=40; if(k==="arrowleft"||k==="a") dx=-40; if(k==="arrowdown"||k==="s") dy=40; if(k==="arrowup"||k==="w") dy=-40;
-  if(dx||dy){ setCam(camX+dx,camY+dy); walk(); updateBanner(); } });
-
 let hintShown=true;
-function hideHint(){ if(hintShown){ hintShown=false; document.getElementById("walkHint").classList.add("hide"); } }
-world.addEventListener("mousedown", hideHint); world.addEventListener("touchstart", hideHint);
-setTimeout(()=>document.getElementById("walkHint").classList.add("hide"), 7000);
+world.addEventListener("scroll", ()=>{
+  if(!ticking){ requestAnimationFrame(()=>{ updateBanner(); ticking=false; }); ticking=true; }
+  actors.classList.add("walking"); clearTimeout(walkTimer); walkTimer=setTimeout(()=>actors.classList.remove("walking"),150);
+  if(hintShown){ hintShown=false; document.getElementById("walkHint").classList.add("hide"); }
+}, { passive:true });
+updateBanner();
+setTimeout(()=>document.getElementById("walkHint").classList.add("hide"), 6000);
 
-/* Llevar a producto / pasillo */
-function panCamTo(el){ const gr=grid.getBoundingClientRect(), er=el.getBoundingClientRect();
-  const x=(er.left-gr.left)+er.width/2, y=(er.top-gr.top)+er.height/2;
-  grid.classList.add("smooth"); setCam(x,y); updateBanner(); setTimeout(()=>grid.classList.remove("smooth"),520); }
-function teleport(id){ const el=world.querySelector('.product[data-id="'+id+'"]'); if(!el) return; closeChat(); panCamTo(el);
+/* Movimiento libre por cualquier eje */
+world.addEventListener("wheel", e=>{ if(e.shiftKey){ world.scrollLeft+=e.deltaY; e.preventDefault(); } }, { passive:false });
+window.addEventListener("keydown", e=>{
+  const k=e.key.toLowerCase();
+  if(k==="arrowright"||k==="d") world.scrollLeft+=150;
+  if(k==="arrowleft"||k==="a") world.scrollLeft-=150;
+  if(k==="arrowdown"||k==="s") world.scrollTop+=150;
+  if(k==="arrowup"||k==="w") world.scrollTop-=150;
+});
+let drag=null;
+world.addEventListener("mousedown", e=>{ if(e.target.closest(".product")) return; drag={x:e.clientX,y:e.clientY,sl:world.scrollLeft,st:world.scrollTop}; world.classList.add("grabbing"); });
+window.addEventListener("mousemove", e=>{ if(!drag) return; world.scrollLeft=drag.sl-(e.clientX-drag.x); world.scrollTop=drag.st-(e.clientY-drag.y); });
+window.addEventListener("mouseup", ()=>{ drag=null; world.classList.remove("grabbing"); });
+
+/* Llevar a producto / pasillo (centra la cámara) */
+function panTo(el){ const wr=world.getBoundingClientRect(), er=el.getBoundingClientRect();
+  world.scrollTo({ left:Math.max(0, world.scrollLeft+(er.left-wr.left)-world.clientWidth/2+er.width/2),
+                   top:Math.max(0, world.scrollTop+(er.top-wr.top)-world.clientHeight/2+er.height/2), behavior:"smooth" }); }
+function teleport(id){ const el=world.querySelector('.product[data-id="'+id+'"]'); if(!el) return; closeChat(); panTo(el);
   document.querySelectorAll(".product.spot").forEach(x=>x.classList.remove("spot"));
-  setTimeout(()=>{ el.classList.add("spot"); setTimeout(()=>el.classList.remove("spot"),3000); },520); }
-function goPasillo(rackId){ const s=world.querySelector('.stand[data-rack="'+rackId+'"]'); if(!s) return; closeChat(); panCamTo(s); }
+  setTimeout(()=>{ el.classList.add("spot"); setTimeout(()=>el.classList.remove("spot"),3000); },450); }
+function goPasillo(rackId){ const s=world.querySelector('.stand[data-rack="'+rackId+'"]'); if(!s) return; closeChat(); panTo(s); }
 
 /* ====== Hoja producto ====== */
 const scrim=document.getElementById("scrim"), sheet=document.getElementById("sheet"); let actual=null;
@@ -369,7 +339,6 @@ function advSearchHead(){ const v=document.getElementById("advQ").value.trim(); 
 document.getElementById("advGo").addEventListener("click", e=>{ e.stopPropagation(); advSearchHead(); });
 document.getElementById("advQ").addEventListener("keydown", e=>{ if(e.key==="Enter") advSearchHead(); });
 document.getElementById("advQ").addEventListener("mousedown", e=>e.stopPropagation());
-document.getElementById("advQ").addEventListener("touchstart", e=>e.stopPropagation());
 function botSay(html){ const d=document.createElement("div"); d.className="msg bot"; d.innerHTML=html; advMsgs.appendChild(d); advMsgs.scrollTop=advMsgs.scrollHeight; return d; }
 function meSay(t){ const d=document.createElement("div"); d.className="msg me"; d.textContent=t; advMsgs.appendChild(d); advMsgs.scrollTop=advMsgs.scrollHeight; }
 function renderChips(){ const chips=document.getElementById("advChips"); chips.innerHTML="";
