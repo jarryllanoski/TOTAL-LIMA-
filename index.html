@@ -78,7 +78,7 @@ button{ font-family:inherit; cursor:pointer; border:none; }
 .walk-hint.hide{ opacity:0; pointer-events:none; }
 
 /* Actores */
-.actors{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); z-index:20; display:flex; align-items:flex-end; gap:2px; pointer-events:none; }
+.actors{ position:absolute; left:50%; top:55%; transform:translate(-50%,-100%); z-index:20; display:flex; align-items:flex-end; gap:2px; pointer-events:none; }
 .player,.advisor{ position:relative; display:flex; align-items:flex-end; pointer-events:auto; cursor:pointer; }
 .advisor{ margin-left:12px; }
 .player .cart{ font-size:28px; margin-left:-4px; filter:drop-shadow(0 6px 5px #0008); }
@@ -268,12 +268,14 @@ const stands=[...grid.querySelectorAll(".stand")];
 /* ====== Motor de cámara con colisión (solo pasillos) ====== */
 const actors=document.getElementById("actors");
 const sectionName=document.getElementById("sectionName"), pasilloLabel=document.getElementById("pasilloLabel");
-let camX=0, camY=0, stageW=0, stageH=0, gridW=0, gridH=0, rects=[], moved=false, walkTimer=null;
+let camX=0, camY=0, stageW=0, stageH=0, gridW=0, gridH=0, rects=[], moved=false, walkTimer=null, anchorY=0;
 const MARGIN=26;
 
 function measure(){
   stageW=world.clientWidth; stageH=world.clientHeight;
   gridW=grid.scrollWidth; gridH=grid.scrollHeight;
+  anchorY = stageH * (window.innerWidth<=700 ? 0.74 : 0.56);   // en celular, personaje abajo
+  actors.style.top = anchorY + "px";
   rects=stands.map(s=>({x:s.offsetLeft,y:s.offsetTop,w:s.offsetWidth,h:s.offsetHeight}));
 }
 function resolveCollision(x,y){
@@ -290,7 +292,7 @@ function setCam(x,y,collide){
   if(collide!==false){ [x,y]=resolveCollision(x,y); }
   camX=Math.max(20,Math.min(Math.max(20,gridW-20),x));
   camY=Math.max(20,Math.min(Math.max(20,gridH-20),y));
-  grid.style.transform=`translate(${Math.round(stageW/2-camX)}px,${Math.round(stageH/2-camY)}px)`;
+  grid.style.transform=`translate(${Math.round(stageW/2-camX)}px,${Math.round(anchorY-camY)}px)`;
 }
 function walk(){ actors.classList.add("walking"); clearTimeout(walkTimer); walkTimer=setTimeout(()=>actors.classList.remove("walking"),150); }
 function updateBanner(){ if(!rects.length) return; let bi=0,bd=1e15;
