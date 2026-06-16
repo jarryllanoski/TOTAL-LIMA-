@@ -45,19 +45,16 @@ button{ font-family:inherit; cursor:pointer; border:none; }
 .section-banner .hint{ margin-left:auto; font-size:11px; color:#14161a; background:#ffffffcc; padding:3px 9px; border-radius:999px; font-weight:700; }
 
 .stage{ position:fixed; inset:94px 0 0 0; overflow:hidden; }
-.world{ position:absolute; inset:0; overflow:hidden; cursor:grab; touch-action:none;
+.world{ position:absolute; inset:0; overflow:hidden; cursor:pointer; touch-action:none;
   background:repeating-linear-gradient(0deg,#f7b5001a 0 3px,#0000 3px 30px), repeating-linear-gradient(90deg,#f7b5001a 0 3px,#0000 3px 30px), linear-gradient(#1c2026,#15171c); }
-.world.grabbing{ cursor:grabbing; }
-.store-grid{ position:absolute; top:0; left:0; transform-origin:0 0; will-change:transform; display:flex; align-items:flex-start; gap:120px; padding:70px 120px 220px; }
-.store-grid.smooth{ transition:transform .4s cubic-bezier(.2,.8,.2,1); }
+.store-grid{ position:absolute; top:0; left:0; transform-origin:0 0; will-change:transform; display:flex; align-items:flex-start; gap:120px; padding:70px 130px 240px; }
 
-/* Un pasillo = estante izq + carril + estante der */
 .aisle{ display:flex; align-items:flex-start; gap:0; }
 .aisle-name{ position:absolute; transform:translateY(-34px); background:#14161a; color:var(--amarillo); border:1px solid #ffffff22; font-size:13px; padding:4px 12px; border-radius:8px; white-space:nowrap; box-shadow:0 3px 10px #0006; z-index:3; }
 .shelf{ width:130px; flex:0 0 auto; background:radial-gradient(circle at center,#0000 2px,#00000022 3px) 0 0/22px 22px, linear-gradient(180deg,var(--pegboard),var(--pegboard-2));
   background-blend-mode:multiply,normal; border:3px solid #00000044; border-radius:14px; padding:12px 11px 14px; display:flex; flex-direction:column; gap:0; box-shadow:0 16px 34px #0009; }
-.shelf.right{ } .shelf.empty{ min-height:120px; }
-.lane{ width:128px; flex:0 0 auto; align-self:stretch; }
+.shelf.empty{ min-height:120px; }
+.lane{ width:130px; flex:0 0 auto; align-self:stretch; }
 
 .product{ width:108px; display:flex; flex-direction:column; gap:5px; cursor:pointer; transform-origin:bottom center; transition:transform .18s ease; background:none; margin-bottom:5px; }
 .product:active{ transform:translateY(-3px) scale(1.04); }
@@ -71,8 +68,8 @@ button{ font-family:inherit; cursor:pointer; border:none; }
 .product.spot .photo{ box-shadow:0 0 0 3px var(--amarillo), 0 0 26px #f7b50099, var(--sombra); animation:spot 1.4s ease 2; }
 @keyframes spot{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-8px); } }
 
-/* Personajes en el carril */
-.actors{ position:absolute; left:50%; top:70%; transform:translate(-50%,-100%); z-index:20; display:flex; align-items:flex-end; gap:4px; pointer-events:none; }
+/* Personajes: su posición la pone el JS (left/top), caminan por la tienda */
+.actors{ position:absolute; left:0; top:0; transform:translate(-50%,-100%); z-index:20; display:flex; align-items:flex-end; gap:4px; pointer-events:none; }
 .player,.advisor{ position:relative; display:flex; align-items:flex-end; pointer-events:auto; }
 .advisor{ margin-left:12px; cursor:pointer; }
 .cart-btn{ position:relative; background:none; margin-left:-2px; cursor:pointer; }
@@ -110,7 +107,6 @@ button{ font-family:inherit; cursor:pointer; border:none; }
 @keyframes legA{ 0%,100%{ transform:rotate(15deg) } 50%{ transform:rotate(-15deg) } }
 @keyframes legB{ 0%,100%{ transform:rotate(-15deg) } 50%{ transform:rotate(15deg) } }
 
-/* Flechas debajo de los personajes */
 .dpad{ position:fixed; left:50%; transform:translateX(-50%); bottom:calc(16px + var(--safe-b)); z-index:45; display:flex; align-items:center; gap:9px; }
 .dpad .dp{ width:42px; height:42px; border-radius:50%; background:#14161abb; border:1px solid #ffffff26; color:var(--amarillo); font-size:16px; display:none; place-items:center; box-shadow:var(--sombra); backdrop-filter:blur(3px); }
 .dpad .dp.on{ display:grid; } .dpad .dp:active{ background:#000; }
@@ -196,7 +192,7 @@ button{ font-family:inherit; cursor:pointer; border:none; }
 
 <div class="section-banner">
   <div class="chip signage"><span id="pasilloLabel">PASILLO</span> · <b id="sectionName">TIENDA</b></div>
-  <div class="hint">Camina ← → ↑ ↓</div>
+  <div class="hint">Toca para caminar</div>
 </div>
 
 <div class="stage">
@@ -261,7 +257,7 @@ function figHTML(c){ return `<div class="fig" style="--skin:${c.skin||'#e8b98c'}
 const PRESETS=[{shirt:'#3b82f6',pants:'#1f2a44'},{shirt:'#ef4444',pants:'#3a1f1f'},{shirt:'#22c55e',pants:'#1f3a26',hat:true,hatc:'#f7b500'},{shirt:'#a855f7',pants:'#2e1f3a'},{shirt:'#f7b500',pants:'#3a3320',hat:true,hatc:'#ffffff'},{shirt:'#14b8a6',pants:'#163a36'},{shirt:'#f97316',pants:'#3a2616',hat:true,hatc:'#ffffff'},{shirt:'#cbd5e1',pants:'#2b3a55'}];
 document.getElementById("advisorFig").innerHTML = figHTML({shirt:'#f7b500',pants:'#1a1d23',hat:true,hatc:'#f97316',vest:true});
 
-/* ====== Construir pasillos (estante izq + carril + estante der) ====== */
+/* ====== Construir pasillos ====== */
 const world=document.getElementById("world"), grid=document.getElementById("grid");
 function productCard(p){
   const el=document.createElement("button"); el.className="product"; el.dataset.id=p.id; el.setAttribute("aria-label",p.nombre);
@@ -288,75 +284,76 @@ function buildStore(){
 buildStore();
 const aisles=[...grid.querySelectorAll(".aisle")];
 
-/* ====== Cámara: carril central, vertical dentro del pasillo, horizontal entre pasillos ====== */
+/* ====== Motor: el PERSONAJE camina; góndolas fijas; cámara con zona muerta ====== */
 const actors=document.getElementById("actors");
 const sectionName=document.getElementById("sectionName"), pasilloLabel=document.getElementById("pasilloLabel");
 const dpUp=document.getElementById("dpUp"), dpDown=document.getElementById("dpDown"), dpLeft=document.getElementById("dpLeft"), dpRight=document.getElementById("dpRight");
-let camX=0, camY=0, stageW=0, stageH=0, charY=0, pos=[], cur=0, moved=false, walkTimer=null;
-const STEP=150;
+let stageW=0, stageH=0, gridW=0, gridH=0, pos=[], cur=0, moved=false;
+let camX=0, camY=0, charX=0, charY=0, tx=0, ty=0, raf=null;
+const SPEED=7, STEP=150;
 
 function measure(){
-  stageW=world.clientWidth; stageH=world.clientHeight; charY=stageH*0.70;
-  actors.style.top=charY+"px";
-  pos = aisles.map(a=>{ const lane=a.querySelector(".lane"); const x=lane.offsetLeft+lane.offsetWidth/2 + a.offsetLeft;
+  stageW=world.clientWidth; stageH=world.clientHeight; gridW=grid.scrollWidth; gridH=grid.scrollHeight;
+  pos = aisles.map(a=>{ const lane=a.querySelector(".lane"); const x=lane.offsetLeft+lane.offsetWidth/2;
     const prods=[...a.querySelectorAll(".product")]; let mn=1e15,mx=-1e15;
     prods.forEach(p=>{ const cy=p.offsetTop+p.offsetHeight/2; mn=Math.min(mn,cy); mx=Math.max(mx,cy); });
-    if(!prods.length){ mn=mx=a.offsetTop+60; }
+    if(!prods.length){ mn=mx=a.offsetTop+90; }
     return { x, minY:mn, maxY:mx }; });
 }
-function applyCam(){ grid.style.transform=`translate(${Math.round(stageW/2-camX)}px,${Math.round(charY-camY)}px)`; }
-function walk(){ actors.classList.add("walking"); clearTimeout(walkTimer); walkTimer=setTimeout(()=>actors.classList.remove("walking"),170); }
-function clampY(y){ const p=pos[cur]; if(!p) return y; return Math.max(p.minY,Math.min(p.maxY,y)); }
 function nearestAisle(x){ let bi=0,bd=1e15; pos.forEach((p,i)=>{ const d=Math.abs(p.x-x); if(d<bd){bd=d;bi=i;} }); return bi; }
-function updateNav(){ const a=aisles[cur]; if(a){ sectionName.textContent=(a.dataset.name||"").toUpperCase(); pasilloLabel.textContent="PASILLO "+String(a.dataset.pasillo).padStart(2,"0"); }
+function clampCam(){ camX=Math.max(0,Math.min(Math.max(0,gridW-stageW),camX)); camY=Math.max(0,Math.min(Math.max(0,gridH-stageH),camY)); }
+function followCam(){ const sx=charX-camX, sy=charY-camY;
+  if(sx<stageW*0.34) camX=charX-stageW*0.34; else if(sx>stageW*0.66) camX=charX-stageW*0.66;
+  if(sy<stageH*0.34) camY=charY-stageH*0.34; else if(sy>stageH*0.60) camY=charY-stageH*0.60;
+  clampCam(); }
+function render(){ grid.style.transform=`translate(${-Math.round(camX)}px,${-Math.round(camY)}px)`;
+  actors.style.left=Math.round(charX-camX)+"px"; actors.style.top=Math.round(charY-camY)+"px"; }
+function updateNav(){ cur=nearestAisle(charX); const a=aisles[cur];
+  if(a){ sectionName.textContent=(a.dataset.name||"").toUpperCase(); pasilloLabel.textContent="PASILLO "+String(a.dataset.pasillo).padStart(2,"0"); }
   const p=pos[cur]||{minY:0,maxY:0};
   dpLeft.classList.toggle("on", cur>0); dpRight.classList.toggle("on", cur<aisles.length-1);
-  dpUp.classList.toggle("on", camY>p.minY+4); dpDown.classList.toggle("on", camY<p.maxY-4); }
-function goAisle(i, smooth){ if(i<0||i>=aisles.length) return; cur=i; camX=pos[cur].x; camY=clampY(camY);
-  if(smooth!==false) grid.classList.add("smooth"); applyCam(); updateNav(); walk();
-  if(smooth!==false) setTimeout(()=>grid.classList.remove("smooth"),420); }
-function moveY(d){ camY=clampY(camY+d); grid.classList.add("smooth"); applyCam(); updateNav(); walk(); setTimeout(()=>grid.classList.remove("smooth"),300); }
+  dpUp.classList.toggle("on", charY>p.minY+6); dpDown.classList.toggle("on", charY<p.maxY-6); }
+function step(){ const dx=tx-charX, dy=ty-charY, dist=Math.hypot(dx,dy);
+  if(dist<2){ charX=tx; charY=ty; actors.classList.remove("walking"); followCam(); render(); updateNav(); raf=null; return; }
+  const m=Math.min(SPEED,dist); charX+=dx/dist*m; charY+=dy/dist*m; followCam(); render(); updateNav(); raf=requestAnimationFrame(step); }
+function walkTo(x,y){ tx=x; ty=y; actors.classList.add("walking"); if(!raf) raf=requestAnimationFrame(step); }
+function walkToWorld(wx,wy){ const i=nearestAisle(wx); const p=pos[i]; walkTo(p.x, Math.max(p.minY,Math.min(p.maxY,wy))); }
 
-measure(); if(aisles.length){ cur=0; camX=pos[0].x; camY=pos[0].maxY; applyCam(); updateNav(); }
-window.addEventListener("resize", ()=>{ measure(); if(pos[cur]){ camX=pos[cur].x; camY=clampY(camY); applyCam(); updateNav(); } });
+measure();
+if(aisles.length){ charX=pos[0].x; charY=pos[0].maxY; tx=charX; ty=charY; followCam(); render(); updateNav(); }
+window.addEventListener("resize", ()=>{ measure(); charX=pos[cur]?pos[cur].x:charX; followCam(); render(); updateNav(); });
 
-/* Deslizar: horizontal=cambiar pasillo, vertical=caminar */
-let sx=0, sy=0, scx=0, scy=0, dragging=false;
+/* Tocar = caminar hacia ahí · deslizar = guiar al personaje */
+let dragging=false, sxp=0, syp=0;
 function pt(e){ const t=e.touches?e.touches[0]:e; return {x:t.clientX,y:t.clientY}; }
-function down(e){ if(e.target.closest(".actors")||e.target.closest(".dpad")) return;
-  const p=pt(e); moved=false; dragging=true; sx=p.x; sy=p.y; scx=camX; scy=camY; grid.classList.remove("smooth"); world.classList.add("grabbing");
-  if(e.cancelable && e.touches) e.preventDefault(); }
-function move(e){ if(!dragging) return; const p=pt(e); const dx=p.x-sx, dy=p.y-sy; if(Math.abs(dx)>4||Math.abs(dy)>4) moved=true;
-  camX=scx-dx; camY=clampY(scy-dy); applyCam(); if(moved){ walk(); cur=nearestAisle(camX); updateNav(); }
-  if(e.cancelable && e.touches) e.preventDefault(); }
-function up(){ if(!dragging) return; dragging=false; world.classList.remove("grabbing"); if(moved) goAisle(nearestAisle(camX)); }
+function toWorld(cx,cy){ const r=world.getBoundingClientRect(); return { x:(cx-r.left)+camX, y:(cy-r.top)+camY }; }
+function down(e){ if(e.target.closest(".actors")||e.target.closest(".dpad")) return; dragging=true; moved=false; const p=pt(e); sxp=p.x; syp=p.y; if(e.cancelable&&e.touches) e.preventDefault(); }
+function move(e){ if(!dragging) return; const p=pt(e); if(Math.abs(p.x-sxp)>5||Math.abs(p.y-syp)>5) moved=true;
+  if(moved){ const w=toWorld(p.x,p.y); walkToWorld(w.x,w.y); } if(e.cancelable&&e.touches) e.preventDefault(); }
+function up(){ if(!dragging) return; dragging=false; if(moved){ tx=charX; ty=charY; } }
 world.addEventListener("mousedown", down); window.addEventListener("mousemove", move); window.addEventListener("mouseup", up);
 world.addEventListener("touchstart", down, {passive:false}); world.addEventListener("touchmove", move, {passive:false}); world.addEventListener("touchend", up);
-
-/* Tap para caminar hacia el punto */
 world.addEventListener("click", e=>{ if(moved) return; if(e.target.closest(".product")||e.target.closest(".actors")||e.target.closest(".dpad")) return;
-  const r=world.getBoundingClientRect(); const wx=camX+(e.clientX-(r.left+stageW/2)), wy=camY+(e.clientY-(r.top+charY));
-  const i=nearestAisle(wx); cur=i; camX=pos[i].x; camY=Math.max(pos[i].minY,Math.min(pos[i].maxY,wy));
-  grid.classList.add("smooth"); applyCam(); updateNav(); walk(); setTimeout(()=>grid.classList.remove("smooth"),420); });
-
+  const w=toWorld(e.clientX,e.clientY); walkToWorld(w.x,w.y); });
 window.addEventListener("keydown", e=>{ const ae=document.activeElement; if(ae && /input|textarea/i.test(ae.tagName)) return;
   if(e.key==="ArrowRight") goAisle(cur+1); else if(e.key==="ArrowLeft") goAisle(cur-1);
-  else if(e.key==="ArrowUp") moveY(-STEP); else if(e.key==="ArrowDown") moveY(STEP); });
+  else if(e.key==="ArrowUp") walkTo(charX, Math.max(pos[cur].minY,charY-STEP)); else if(e.key==="ArrowDown") walkTo(charX, Math.min(pos[cur].maxY,charY+STEP)); });
+function goAisle(i){ if(i<0||i>=aisles.length) return; const p=pos[i]; walkTo(p.x, Math.max(p.minY,Math.min(p.maxY,charY))); }
 dpLeft.addEventListener("click", ()=>goAisle(cur-1));
 dpRight.addEventListener("click", ()=>goAisle(cur+1));
-dpUp.addEventListener("click", ()=>moveY(-STEP));
-dpDown.addEventListener("click", ()=>moveY(STEP));
+dpUp.addEventListener("click", ()=>walkTo(charX, Math.max(pos[cur].minY,charY-STEP)));
+dpDown.addEventListener("click", ()=>walkTo(charX, Math.min(pos[cur].maxY,charY+STEP)));
 
-/* Asesor: llevar a sección del producto */
+/* Asesor: caminar a la sección del producto */
 function aisleOfRack(rackId){ return aisles.findIndex(a=>a.dataset.rack===rackId); }
 function teleport(id){ const p=PRODUCTOS.find(x=>x.id===id); if(!p) return; closeChat(); const i=aisleOfRack(p.rackId); if(i<0) return;
-  cur=i; camX=pos[i].x; const el=world.querySelector('.product[data-id="'+id+'"]'); if(el) camY=Math.max(pos[i].minY,Math.min(pos[i].maxY, el.offsetTop+el.offsetHeight/2));
-  grid.classList.add("smooth"); applyCam(); updateNav(); walk(); setTimeout(()=>grid.classList.remove("smooth"),420);
-  setTimeout(()=>{ document.querySelectorAll(".product.spot").forEach(x=>x.classList.remove("spot"));
-    if(el){ el.classList.add("spot"); setTimeout(()=>el.classList.remove("spot"),3000); } },430); }
+  const el=world.querySelector('.product[data-id="'+id+'"]'); const yy=el?(el.offsetTop+el.offsetHeight/2):pos[i].minY;
+  walkTo(pos[i].x, Math.max(pos[i].minY,Math.min(pos[i].maxY,yy)));
+  document.querySelectorAll(".product.spot").forEach(x=>x.classList.remove("spot"));
+  if(el){ el.classList.add("spot"); setTimeout(()=>el.classList.remove("spot"),3200); } }
 function goPasillo(rackId){ closeChat(); const i=aisleOfRack(rackId); if(i>=0) goAisle(i); }
 
-/* ====== Mapa de la tienda ====== */
+/* ====== Mapa ====== */
 const scrimM=document.getElementById("scrimM"), mapModal=document.getElementById("mapModal"), mmGrid=document.getElementById("mmGrid");
 const MMCOLS = Math.min(3, Math.max(1, Math.ceil(Math.sqrt(aisles.length||1))));
 function buildMap(){ mmGrid.style.gridTemplateColumns=`repeat(${MMCOLS},1fr)`; mmGrid.innerHTML="";
@@ -422,7 +419,7 @@ document.getElementById("advSend").addEventListener("click", sendAdv);
 document.getElementById("advText").addEventListener("keydown", e=>{ if(e.key==="Enter") sendAdv(); });
 function sendAdv(){ const i=document.getElementById("advText"), v=i.value.trim(); if(!v) return; meSay(v); i.value=""; answer(v); }
 
-/* ====== Carrito (el del cliente) -> Caja ====== */
+/* ====== Carrito -> Caja ====== */
 const Cart=(()=>{ const items=new Map(), btn=document.getElementById("playerCart"), badge=document.getElementById("cartBadge");
   function add(p){ const c=items.get(p.id)||{producto:p,qty:0}; c.qty++; items.set(p.id,c); render(); bump(); beep(); }
   function totalQty(){ let q=0; items.forEach(i=>q+=i.qty); return q; }
