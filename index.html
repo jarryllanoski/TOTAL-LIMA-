@@ -47,18 +47,21 @@ button{ font-family:inherit; cursor:pointer; border:none; }
 .stage{ position:fixed; inset:94px 0 0 0; overflow:hidden; }
 .world{ position:absolute; inset:0; overflow:hidden; cursor:pointer; touch-action:none;
   background:repeating-linear-gradient(0deg,#f7b5001a 0 3px,#0000 3px 30px), repeating-linear-gradient(90deg,#f7b5001a 0 3px,#0000 3px 30px), linear-gradient(#1c2026,#15171c); }
-.store-grid{ position:absolute; top:0; left:0; transform-origin:0 0; will-change:transform; display:flex; align-items:flex-start; gap:120px; padding:70px 130px 240px; }
+.store-grid{ position:absolute; top:0; left:0; transform-origin:0 0; will-change:transform; display:flex; align-items:flex-start; gap:70px; padding:70px 90px 240px; }
 
 .aisle{ display:flex; align-items:flex-start; gap:0; }
 .aisle-name{ position:absolute; transform:translateY(-34px); background:#14161a; color:var(--amarillo); border:1px solid #ffffff22; font-size:13px; padding:4px 12px; border-radius:8px; white-space:nowrap; box-shadow:0 3px 10px #0006; z-index:3; }
-.shelf{ width:130px; flex:0 0 auto; background:radial-gradient(circle at center,#0000 2px,#00000022 3px) 0 0/22px 22px, linear-gradient(180deg,var(--pegboard),var(--pegboard-2));
-  background-blend-mode:multiply,normal; border:3px solid #00000044; border-radius:14px; padding:12px 11px 14px; display:flex; flex-direction:column; gap:0; box-shadow:0 16px 34px #0009; }
+.shelf{ width:122px; flex:0 0 auto; background:radial-gradient(circle at center,#0000 2px,#00000022 3px) 0 0/22px 22px, linear-gradient(180deg,var(--pegboard),var(--pegboard-2));
+  background-blend-mode:multiply,normal; border:3px solid #00000044; border-radius:14px; padding:12px 8px 14px; display:flex; flex-direction:column; gap:0; box-shadow:0 16px 34px #0009; }
 .shelf.empty{ min-height:120px; }
-.lane{ width:130px; flex:0 0 auto; align-self:stretch; }
+.lane{ width:150px; flex:0 0 auto; align-self:stretch; position:relative;
+  background:linear-gradient(90deg,#0000,#f7b50012 50%,#0000); }
+.lane::before{ content:""; position:absolute; left:50%; top:0; bottom:0; width:4px; transform:translateX(-50%);
+  background:repeating-linear-gradient(0deg,#f7b50055 0 16px,#0000 16px 40px); }
 
-.product{ width:108px; display:flex; flex-direction:column; gap:5px; cursor:pointer; transform-origin:bottom center; transition:transform .18s ease; background:none; margin-bottom:5px; }
+.product{ width:98px; display:flex; flex-direction:column; gap:5px; cursor:pointer; transform-origin:bottom center; transition:transform .18s ease; background:none; margin-bottom:5px; }
 .product:active{ transform:translateY(-3px) scale(1.04); }
-.product .photo{ height:74px; border-radius:11px; display:grid; place-items:center; font-size:36px; overflow:hidden;
+.product .photo{ height:70px; border-radius:11px; display:grid; place-items:center; font-size:34px; overflow:hidden;
   background:radial-gradient(circle at 50% 35%,#ffffff14,#0000), linear-gradient(160deg,#2f343d,#202329); border:1px solid #ffffff10; box-shadow:var(--sombra); position:relative; }
 .product .photo img{ width:100%; height:100%; object-fit:cover; }
 .product .photo .vid{ position:absolute; top:5px; right:5px; font-size:10px; background:#000a; color:#fff; padding:2px 6px; border-radius:6px; }
@@ -294,10 +297,11 @@ const SPEED=7, STEP=150;
 
 function measure(){
   stageW=world.clientWidth; stageH=world.clientHeight; gridW=grid.scrollWidth; gridH=grid.scrollHeight;
-  pos = aisles.map(a=>{ const lane=a.querySelector(".lane"); const x=lane.offsetLeft+lane.offsetWidth/2;
+  const gr=grid.getBoundingClientRect();
+  pos = aisles.map(a=>{ const lr=a.querySelector(".lane").getBoundingClientRect(); const x=(lr.left-gr.left)+lr.width/2;
     const prods=[...a.querySelectorAll(".product")]; let mn=1e15,mx=-1e15;
-    prods.forEach(p=>{ const cy=p.offsetTop+p.offsetHeight/2; mn=Math.min(mn,cy); mx=Math.max(mx,cy); });
-    if(!prods.length){ mn=mx=a.offsetTop+90; }
+    prods.forEach(p=>{ const r=p.getBoundingClientRect(); const cy=(r.top-gr.top)+r.height/2; mn=Math.min(mn,cy); mx=Math.max(mx,cy); });
+    if(!prods.length){ const ar=a.getBoundingClientRect(); mn=mx=(ar.top-gr.top)+90; }
     return { x, minY:mn, maxY:mx }; });
 }
 function nearestAisle(x){ let bi=0,bd=1e15; pos.forEach((p,i)=>{ const d=Math.abs(p.x-x); if(d<bd){bd=d;bi=i;} }); return bi; }
