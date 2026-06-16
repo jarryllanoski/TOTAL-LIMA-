@@ -45,43 +45,49 @@ button{ font-family:inherit; cursor:pointer; border:none; }
 .section-banner .hint{ margin-left:auto; font-size:11px; color:#14161a; background:#ffffffcc; padding:3px 9px; border-radius:999px; font-weight:700; }
 
 .stage{ position:fixed; inset:94px 0 0 0; overflow:hidden; }
-.world{ position:absolute; inset:0; overflow:hidden; cursor:grab; touch-action:pan-y;
+.world{ position:absolute; inset:0; overflow:hidden; cursor:grab; touch-action:none;
   background:repeating-linear-gradient(0deg,#f7b5001a 0 3px,#0000 3px 30px), repeating-linear-gradient(90deg,#f7b5001a 0 3px,#0000 3px 30px), linear-gradient(#1c2026,#15171c); }
 .world.grabbing{ cursor:grabbing; }
-.store-grid{ position:absolute; top:0; left:0; transform-origin:0 0; will-change:transform; display:grid; gap:120px; padding:60px 130px; align-items:center; justify-items:center; }
-.store-grid.smooth{ transition:transform .42s cubic-bezier(.2,.8,.2,1); }
+.store-grid{ position:absolute; top:0; left:0; transform-origin:0 0; will-change:transform; display:flex; align-items:flex-start; gap:120px; padding:70px 120px 220px; }
+.store-grid.smooth{ transition:transform .4s cubic-bezier(.2,.8,.2,1); }
 
-.road{ position:absolute; left:0; right:0; bottom:0; height:18%; z-index:10; pointer-events:none; background:linear-gradient(#15171c00, #0d0f13 40%); }
-.road::before{ content:""; position:absolute; left:0; right:0; top:46%; height:5px; background:repeating-linear-gradient(90deg,#f7b500 0 34px,#0000 34px 64px); opacity:.8; }
+/* Un pasillo = estante izq + carril + estante der */
+.aisle{ display:flex; align-items:flex-start; gap:0; }
+.aisle-name{ position:absolute; transform:translateY(-34px); background:#14161a; color:var(--amarillo); border:1px solid #ffffff22; font-size:13px; padding:4px 12px; border-radius:8px; white-space:nowrap; box-shadow:0 3px 10px #0006; z-index:3; }
+.shelf{ width:130px; flex:0 0 auto; background:radial-gradient(circle at center,#0000 2px,#00000022 3px) 0 0/22px 22px, linear-gradient(180deg,var(--pegboard),var(--pegboard-2));
+  background-blend-mode:multiply,normal; border:3px solid #00000044; border-radius:14px; padding:12px 11px 14px; display:flex; flex-direction:column; gap:0; box-shadow:0 16px 34px #0009; }
+.shelf.right{ } .shelf.empty{ min-height:120px; }
+.lane{ width:128px; flex:0 0 auto; align-self:stretch; }
 
-.stand{ position:relative; background:radial-gradient(circle at center,#0000 2px,#00000022 3px) 0 0/24px 24px, linear-gradient(180deg,var(--pegboard),var(--pegboard-2));
-  background-blend-mode:multiply,normal; border:3px solid #00000044; border-radius:16px; padding:10px 12px 14px; box-shadow:0 16px 34px #0009; }
-.stand-sign{ display:inline-block; background:#14161a; color:var(--amarillo); border:1px solid #ffffff22; font-size:13px;
-  padding:4px 11px; border-radius:8px; margin:0 0 8px 2px; white-space:nowrap; box-shadow:0 3px 10px #0006; }
-.shelf-row{ display:flex; gap:14px; align-items:flex-end; padding:0 2px 5px; }
-.ledge{ height:14px; width:100%; background:linear-gradient(180deg,var(--madera),var(--madera-2)); border-radius:3px; box-shadow:0 7px 14px #0007, inset 0 2px 0 #ffffff22; margin-bottom:12px; }
-.stand-empty{ color:#00000055; font-size:12px; padding:24px 14px; }
-
-.product{ width:108px; flex:0 0 auto; display:flex; flex-direction:column; gap:5px; cursor:pointer; transform-origin:bottom center; transition:transform .18s ease; background:none; }
+.product{ width:108px; display:flex; flex-direction:column; gap:5px; cursor:pointer; transform-origin:bottom center; transition:transform .18s ease; background:none; margin-bottom:5px; }
 .product:active{ transform:translateY(-3px) scale(1.04); }
-.product .photo{ height:78px; border-radius:11px; display:grid; place-items:center; font-size:38px; overflow:hidden;
+.product .photo{ height:74px; border-radius:11px; display:grid; place-items:center; font-size:36px; overflow:hidden;
   background:radial-gradient(circle at 50% 35%,#ffffff14,#0000), linear-gradient(160deg,#2f343d,#202329); border:1px solid #ffffff10; box-shadow:var(--sombra); position:relative; }
 .product .photo img{ width:100%; height:100%; object-fit:cover; }
 .product .photo .vid{ position:absolute; top:5px; right:5px; font-size:10px; background:#000a; color:#fff; padding:2px 6px; border-radius:6px; }
 .product .pname{ font-size:11px; line-height:1.1; height:26px; overflow:hidden; color:#1a1a1a; font-weight:700; }
 .product .ptag{ align-self:flex-start; background:var(--amarillo); color:var(--negro); font-size:12px; padding:2px 8px; border-radius:6px; font-weight:700; box-shadow:0 2px 0 #0005; }
+.ledge{ height:13px; background:linear-gradient(180deg,var(--madera),var(--madera-2)); border-radius:3px; box-shadow:0 7px 14px #0007, inset 0 2px 0 #ffffff22; margin-bottom:12px; }
 .product.spot .photo{ box-shadow:0 0 0 3px var(--amarillo), 0 0 26px #f7b50099, var(--sombra); animation:spot 1.4s ease 2; }
 @keyframes spot{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-8px); } }
 
-/* Actores fijos bien abajo */
-.actors{ position:absolute; left:50%; top:85%; transform:translate(-50%,-100%); z-index:20; display:flex; align-items:flex-end; gap:2px; pointer-events:none; }
+/* Personajes en el carril */
+.actors{ position:absolute; left:50%; top:70%; transform:translate(-50%,-100%); z-index:20; display:flex; align-items:flex-end; gap:4px; pointer-events:none; }
 .player,.advisor{ position:relative; display:flex; align-items:flex-end; pointer-events:auto; }
-.advisor{ margin-left:14px; cursor:pointer; }
-.cart-btn{ position:relative; background:none; font-size:28px; margin-left:-4px; filter:drop-shadow(0 6px 5px #0008); cursor:pointer; }
-.cart-btn .badge{ position:absolute; top:-6px; right:-8px; min-width:21px; height:21px; padding:0 5px; border-radius:999px; background:#e0392b; color:#fff; font-size:11px; font-weight:800; display:grid; place-items:center; border:2px solid var(--concreto); transform:scale(0); transition:transform .2s; }
+.advisor{ margin-left:12px; cursor:pointer; }
+.cart-btn{ position:relative; background:none; margin-left:-2px; cursor:pointer; }
+.cart-btn .badge{ position:absolute; top:-8px; right:-8px; min-width:21px; height:21px; padding:0 5px; border-radius:999px; background:#e0392b; color:#fff; font-size:11px; font-weight:800; display:grid; place-items:center; border:2px solid var(--concreto); transform:scale(0); transition:transform .2s; z-index:4; }
 .cart-btn .badge.show{ transform:scale(1); }
 .cart-btn.bump{ animation:bump .35s ease; }
-@keyframes bump{ 0%,100%{ transform:scale(1); } 40%{ transform:scale(1.22); } }
+@keyframes bump{ 0%,100%{ transform:scale(1); } 40%{ transform:scale(1.18); } }
+.cartfig{ position:relative; width:42px; height:36px; filter:drop-shadow(0 5px 4px #0008); }
+.cartfig .basket{ position:absolute; left:8px; top:5px; width:30px; height:17px; background:#a9dbe8; border:2px solid #4f9aac; border-radius:1px 3px 7px 7px; transform:skewX(-9deg);
+  background-image:repeating-linear-gradient(90deg,#4f9aac66 0 1px,#0000 1px 6px),repeating-linear-gradient(0deg,#4f9aac66 0 1px,#0000 1px 5px); }
+.cartfig .handle{ position:absolute; left:-1px; top:1px; width:10px; height:14px; border-left:2.5px solid #4f9aac; border-top:2.5px solid #4f9aac; border-radius:3px 0 0 0; transform:rotate(-9deg); }
+.cartfig .wheel{ position:absolute; bottom:0; width:9px; height:9px; border-radius:50%; background:#2a2a2a; border:2px solid #9aa; }
+.cartfig .wheel.l{ left:11px; } .cartfig .wheel.r{ right:5px; }
+.actors.walking .cartfig .wheel{ animation:spin .3s linear infinite; }
+@keyframes spin{ to{ transform:rotate(360deg) } }
 .player .figwrap{ cursor:pointer; }
 .figwrap{ animation:bobup 2s ease-in-out infinite; }
 .actors .shadow{ position:absolute; bottom:-2px; left:50%; transform:translateX(-50%); width:34px; height:7px; border-radius:50%; background:#000; opacity:.3; filter:blur(3px); }
@@ -104,12 +110,12 @@ button{ font-family:inherit; cursor:pointer; border:none; }
 @keyframes legA{ 0%,100%{ transform:rotate(15deg) } 50%{ transform:rotate(-15deg) } }
 @keyframes legB{ 0%,100%{ transform:rotate(-15deg) } 50%{ transform:rotate(15deg) } }
 
-/* Dpad minimalista (esquina inferior derecha) */
-.dpad{ position:fixed; right:14px; bottom:calc(20px + var(--safe-b)); z-index:45; width:120px; height:120px; pointer-events:none; }
-.dpad button{ position:absolute; width:40px; height:40px; border-radius:50%; background:#14161abb; border:1px solid #ffffff26; color:var(--amarillo); font-size:16px; display:none; place-items:center; box-shadow:var(--sombra); backdrop-filter:blur(3px); pointer-events:auto; }
-.dpad button.on{ display:grid; }
-.dpad button:active{ background:#000; }
-.dp-up{ top:0; left:40px; } .dp-down{ bottom:0; left:40px; } .dp-left{ left:0; top:40px; } .dp-right{ right:0; top:40px; }
+/* Flechas debajo de los personajes */
+.dpad{ position:fixed; left:50%; transform:translateX(-50%); bottom:calc(16px + var(--safe-b)); z-index:45; display:flex; align-items:center; gap:9px; }
+.dpad .dp{ width:42px; height:42px; border-radius:50%; background:#14161abb; border:1px solid #ffffff26; color:var(--amarillo); font-size:16px; display:none; place-items:center; box-shadow:var(--sombra); backdrop-filter:blur(3px); }
+.dpad .dp.on{ display:grid; } .dpad .dp:active{ background:#000; }
+.dp-vert{ display:flex; flex-direction:column; gap:7px; }
+.dp-vert .dp{ width:38px; height:38px; }
 
 .scrim{ position:fixed; inset:0; z-index:60; background:#000c; opacity:0; pointer-events:none; transition:opacity .25s; }
 .scrim.open{ opacity:1; pointer-events:auto; }
@@ -129,7 +135,6 @@ button{ font-family:inherit; cursor:pointer; border:none; }
 .btn-add{ flex:1; background:var(--amarillo); color:var(--negro); border-radius:12px; padding:14px; font-size:16px; font-weight:800; box-shadow:0 4px 0 #0005; }
 .btn-add:active{ transform:translateY(2px); box-shadow:0 2px 0 #0005; }
 
-/* Mapa de la tienda */
 .map-modal{ position:fixed; left:50%; top:50%; transform:translate(-50%,-46%) scale(.96); z-index:62; width:min(440px,calc(100vw - 28px)); max-height:80vh; overflow:auto;
   background:var(--concreto-2); border:1px solid #ffffff1c; border-radius:20px; padding:16px; box-shadow:0 20px 50px #000c; opacity:0; pointer-events:none; transition:.22s; }
 .map-modal.open{ transform:translate(-50%,-50%) scale(1); opacity:1; pointer-events:auto; }
@@ -191,16 +196,15 @@ button{ font-family:inherit; cursor:pointer; border:none; }
 
 <div class="section-banner">
   <div class="chip signage"><span id="pasilloLabel">PASILLO</span> · <b id="sectionName">TIENDA</b></div>
-  <div class="hint">Desliza ← →</div>
+  <div class="hint">Camina ← → ↑ ↓</div>
 </div>
 
 <div class="stage">
   <div class="world" id="world"><div class="store-grid" id="grid"></div></div>
-  <div class="road"></div>
   <div class="actors" id="actors">
     <div class="player" id="player">
       <div class="figwrap" id="playerFig"></div>
-      <button class="cart-btn" id="playerCart" aria-label="Ver carrito">🛒<span class="badge" id="cartBadge">0</span></button>
+      <button class="cart-btn" id="playerCart" aria-label="Ver carrito"><div class="cartfig"><div class="basket"></div><div class="handle"></div><div class="wheel l"></div><div class="wheel r"></div></div><span class="badge" id="cartBadge">0</span></button>
       <div class="shadow"></div>
     </div>
     <div class="advisor" id="advisor" aria-label="Asesor TOTAL">
@@ -211,10 +215,9 @@ button{ font-family:inherit; cursor:pointer; border:none; }
 </div>
 
 <div class="dpad" id="dpad">
-  <button class="dp-up" id="dpUp" aria-label="Sección de arriba">▲</button>
-  <button class="dp-left" id="dpLeft" aria-label="Sección izquierda">◀</button>
-  <button class="dp-right" id="dpRight" aria-label="Sección derecha">▶</button>
-  <button class="dp-down" id="dpDown" aria-label="Sección de abajo">▼</button>
+  <button class="dp" id="dpLeft" aria-label="Pasillo izquierda">◀</button>
+  <div class="dp-vert"><button class="dp" id="dpUp" aria-label="Subir">▲</button><button class="dp" id="dpDown" aria-label="Bajar">▼</button></div>
+  <button class="dp" id="dpRight" aria-label="Pasillo derecha">▶</button>
 </div>
 
 <div class="scrim" id="scrim"></div>
@@ -252,104 +255,115 @@ const RACKS = TTDB.racks().slice().sort((a,b)=>a.pasillo-b.pasillo);
 const PRODUCTOS = TTDB.productos();
 const soles = n => "S/ " + (Number(n)||0).toFixed(2);
 const norm = s => String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
-const chunk = (a,n)=>{ const r=[]; for(let i=0;i<a.length;i+=n) r.push(a.slice(i,i+n)); return r; };
-const COLS = Math.min(3, Math.max(1, Math.ceil(Math.sqrt(RACKS.length||1))));
 
 function figHTML(c){ return `<div class="fig" style="--skin:${c.skin||'#e8b98c'};--shirt:${c.shirt};--pants:${c.pants||'#2b3a55'};--hatd:${c.hat?'block':'none'};--hatc:${c.hatc||'#f7b500'}">
   <div class="hat"></div><div class="head"></div><div class="body${c.vest?' vest':''}"></div><div class="arm l"></div><div class="arm r"></div><div class="leg l"></div><div class="leg r"></div></div>`; }
 const PRESETS=[{shirt:'#3b82f6',pants:'#1f2a44'},{shirt:'#ef4444',pants:'#3a1f1f'},{shirt:'#22c55e',pants:'#1f3a26',hat:true,hatc:'#f7b500'},{shirt:'#a855f7',pants:'#2e1f3a'},{shirt:'#f7b500',pants:'#3a3320',hat:true,hatc:'#ffffff'},{shirt:'#14b8a6',pants:'#163a36'},{shirt:'#f97316',pants:'#3a2616',hat:true,hatc:'#ffffff'},{shirt:'#cbd5e1',pants:'#2b3a55'}];
 document.getElementById("advisorFig").innerHTML = figHTML({shirt:'#f7b500',pants:'#1a1d23',hat:true,hatc:'#f97316',vest:true});
 
-/* ====== Construir secciones (cuadrícula 2D) ====== */
+/* ====== Construir pasillos (estante izq + carril + estante der) ====== */
 const world=document.getElementById("world"), grid=document.getElementById("grid");
-grid.style.gridTemplateColumns = `repeat(${COLS}, max-content)`;
 function productCard(p){
   const el=document.createElement("button"); el.className="product"; el.dataset.id=p.id; el.setAttribute("aria-label",p.nombre);
   const photo=p.foto?`<img src="${p.foto}" alt="">`:p.emoji;
   el.innerHTML=`<div class="photo">${photo}<span class="vid">▶ video</span></div><div class="pname">${p.nombre}</div><div class="ptag mono">${soles(p.precio)}</div>`;
   el.addEventListener("click", e=>{ e.stopPropagation(); if(!moved) openSheet(p); }); return el;
 }
+function fillShelf(shelf, list){ list.forEach(p=>{ shelf.appendChild(productCard(p)); const l=document.createElement("div"); l.className="ledge"; shelf.appendChild(l); });
+  if(!list.length){ shelf.classList.add("empty"); } }
 function buildStore(){
   RACKS.forEach(rack=>{
     const prods=PRODUCTOS.filter(p=>p.rackId===rack.id);
-    const stand=document.createElement("div"); stand.className="stand";
-    stand.dataset.rack=rack.id; stand.dataset.name=rack.nombre; stand.dataset.pasillo=rack.pasillo;
-    stand.innerHTML=`<div class="stand-sign signage">Pasillo ${String(rack.pasillo).padStart(2,"0")} · ${rack.nombre}</div>`;
-    if(!prods.length){ stand.innerHTML+=`<div class="stand-empty">— estante vacío · agrega productos en Admin —</div>`; }
-    else{
-      chunk(prods,3).forEach(fila=>{ const row=document.createElement("div"); row.className="shelf-row";
-        fila.forEach(p=>row.appendChild(productCard(p))); stand.appendChild(row);
-        const ledge=document.createElement("div"); ledge.className="ledge"; stand.appendChild(ledge); });
-    }
-    grid.appendChild(stand);
+    const izq=[], der=[]; prods.forEach((p,i)=>(i%2===0?izq:der).push(p));
+    const aisle=document.createElement("div"); aisle.className="aisle";
+    aisle.dataset.rack=rack.id; aisle.dataset.name=rack.nombre; aisle.dataset.pasillo=rack.pasillo;
+    const sL=document.createElement("div"); sL.className="shelf left"; fillShelf(sL, izq);
+    const lane=document.createElement("div"); lane.className="lane";
+    lane.innerHTML=`<div class="aisle-name signage">Pasillo ${String(rack.pasillo).padStart(2,"0")} · ${rack.nombre}</div>`;
+    const sR=document.createElement("div"); sR.className="shelf right"; fillShelf(sR, der);
+    aisle.appendChild(sL); aisle.appendChild(lane); aisle.appendChild(sR);
+    grid.appendChild(aisle);
   });
 }
 buildStore();
-const stands=[...grid.querySelectorAll(".stand")];
+const aisles=[...grid.querySelectorAll(".aisle")];
 
-/* ====== Cámara por secciones (cuadrícula) ====== */
+/* ====== Cámara: carril central, vertical dentro del pasillo, horizontal entre pasillos ====== */
 const actors=document.getElementById("actors");
 const sectionName=document.getElementById("sectionName"), pasilloLabel=document.getElementById("pasilloLabel");
 const dpUp=document.getElementById("dpUp"), dpDown=document.getElementById("dpDown"), dpLeft=document.getElementById("dpLeft"), dpRight=document.getElementById("dpRight");
-let camX=0, camY=0, stageW=0, stageH=0, viewY=0, secPos=[], cur=0, moved=false, walkTimer=null;
+let camX=0, camY=0, stageW=0, stageH=0, charY=0, pos=[], cur=0, moved=false, walkTimer=null;
+const STEP=150;
 
 function measure(){
-  stageW=world.clientWidth; stageH=world.clientHeight;
-  viewY = stageH * 0.42;
-  actors.style.top = (stageH*0.85) + "px";
-  secPos = stands.map((s,i)=>({ x:s.offsetLeft+s.offsetWidth/2, y:s.offsetTop+s.offsetHeight/2, row:Math.floor(i/COLS), col:i%COLS }));
+  stageW=world.clientWidth; stageH=world.clientHeight; charY=stageH*0.70;
+  actors.style.top=charY+"px";
+  pos = aisles.map(a=>{ const lane=a.querySelector(".lane"); const x=lane.offsetLeft+lane.offsetWidth/2 + a.offsetLeft;
+    const prods=[...a.querySelectorAll(".product")]; let mn=1e15,mx=-1e15;
+    prods.forEach(p=>{ const cy=p.offsetTop+p.offsetHeight/2; mn=Math.min(mn,cy); mx=Math.max(mx,cy); });
+    if(!prods.length){ mn=mx=a.offsetTop+60; }
+    return { x, minY:mn, maxY:mx }; });
 }
-function applyCam(){ grid.style.transform=`translate(${Math.round(stageW/2-camX)}px,${Math.round(viewY-camY)}px)`; }
-function walk(){ actors.classList.add("walking"); clearTimeout(walkTimer); walkTimer=setTimeout(()=>actors.classList.remove("walking"),160); }
-function rowBounds(row){ let mn=1e15,mx=-1e15; secPos.forEach(p=>{ if(p.row===row){ mn=Math.min(mn,p.x); mx=Math.max(mx,p.x);} }); return {min:mn,max:mx}; }
-function nearestInRow(row){ let bi=cur,bd=1e15; secPos.forEach((p,i)=>{ if(p.row!==row) return; const d=Math.abs(p.x-camX); if(d<bd){bd=d;bi=i;} }); return bi; }
-function neighbor(dir){ const p=secPos[cur]; if(!p) return -1; let r=p.row,c=p.col;
-  if(dir==="left")c--; else if(dir==="right")c++; else if(dir==="up")r--; else if(dir==="down")r++;
-  const i=r*COLS+c; if(i<0||i>=stands.length) return -1; if(secPos[i].row!==r||secPos[i].col!==c) return -1; return i; }
-function updateNav(){ const s=stands[cur]; if(s){ sectionName.textContent=(s.dataset.name||"").toUpperCase(); pasilloLabel.textContent="PASILLO "+String(s.dataset.pasillo).padStart(2,"0"); }
-  dpUp.classList.toggle("on", neighbor("up")>=0); dpDown.classList.toggle("on", neighbor("down")>=0);
-  dpLeft.classList.toggle("on", neighbor("left")>=0); dpRight.classList.toggle("on", neighbor("right")>=0); }
-function goSection(i, smooth){ if(i<0||i>=stands.length) return; cur=i;
-  if(smooth!==false) grid.classList.add("smooth");
-  camX=secPos[cur].x; camY=secPos[cur].y; applyCam(); updateNav(); walk();
-  if(smooth!==false) setTimeout(()=>grid.classList.remove("smooth"),440); }
+function applyCam(){ grid.style.transform=`translate(${Math.round(stageW/2-camX)}px,${Math.round(charY-camY)}px)`; }
+function walk(){ actors.classList.add("walking"); clearTimeout(walkTimer); walkTimer=setTimeout(()=>actors.classList.remove("walking"),170); }
+function clampY(y){ const p=pos[cur]; if(!p) return y; return Math.max(p.minY,Math.min(p.maxY,y)); }
+function nearestAisle(x){ let bi=0,bd=1e15; pos.forEach((p,i)=>{ const d=Math.abs(p.x-x); if(d<bd){bd=d;bi=i;} }); return bi; }
+function updateNav(){ const a=aisles[cur]; if(a){ sectionName.textContent=(a.dataset.name||"").toUpperCase(); pasilloLabel.textContent="PASILLO "+String(a.dataset.pasillo).padStart(2,"0"); }
+  const p=pos[cur]||{minY:0,maxY:0};
+  dpLeft.classList.toggle("on", cur>0); dpRight.classList.toggle("on", cur<aisles.length-1);
+  dpUp.classList.toggle("on", camY>p.minY+4); dpDown.classList.toggle("on", camY<p.maxY-4); }
+function goAisle(i, smooth){ if(i<0||i>=aisles.length) return; cur=i; camX=pos[cur].x; camY=clampY(camY);
+  if(smooth!==false) grid.classList.add("smooth"); applyCam(); updateNav(); walk();
+  if(smooth!==false) setTimeout(()=>grid.classList.remove("smooth"),420); }
+function moveY(d){ camY=clampY(camY+d); grid.classList.add("smooth"); applyCam(); updateNav(); walk(); setTimeout(()=>grid.classList.remove("smooth"),300); }
 
-measure(); if(stands.length) goSection(0,false);
-window.addEventListener("resize", ()=>{ measure(); if(secPos[cur]){ camX=secPos[cur].x; camY=secPos[cur].y; applyCam(); } });
+measure(); if(aisles.length){ cur=0; camX=pos[0].x; camY=pos[0].maxY; applyCam(); updateNav(); }
+window.addEventListener("resize", ()=>{ measure(); if(pos[cur]){ camX=pos[cur].x; camY=clampY(camY); applyCam(); updateNav(); } });
 
-/* Deslizar solo izquierda/derecha (dentro de la fila) + encaje */
-let startX=null, startCam=0, rowY=0, dragging=false;
-function px(e){ return (e.touches?e.touches[0]:e).clientX; }
+/* Deslizar: horizontal=cambiar pasillo, vertical=caminar */
+let sx=0, sy=0, scx=0, scy=0, dragging=false;
+function pt(e){ const t=e.touches?e.touches[0]:e; return {x:t.clientX,y:t.clientY}; }
 function down(e){ if(e.target.closest(".actors")||e.target.closest(".dpad")) return;
-  moved=false; dragging=true; startX=px(e); startCam=camX; rowY=secPos[cur]?secPos[cur].y:camY; grid.classList.remove("smooth"); world.classList.add("grabbing"); }
-function move(e){ if(!dragging) return; const dx=px(e)-startX; if(Math.abs(dx)>4) moved=true;
-  const b=rowBounds(secPos[cur].row); camX=Math.max(b.min,Math.min(b.max,startCam-dx)); camY=rowY; applyCam();
-  if(moved){ walk(); const n=nearestInRow(secPos[cur].row); if(n!==cur){ cur=n; updateNav(); } } }
-function up(){ if(!dragging) return; dragging=false; world.classList.remove("grabbing"); if(moved) goSection(nearestInRow(secPos[cur].row)); }
+  const p=pt(e); moved=false; dragging=true; sx=p.x; sy=p.y; scx=camX; scy=camY; grid.classList.remove("smooth"); world.classList.add("grabbing");
+  if(e.cancelable && e.touches) e.preventDefault(); }
+function move(e){ if(!dragging) return; const p=pt(e); const dx=p.x-sx, dy=p.y-sy; if(Math.abs(dx)>4||Math.abs(dy)>4) moved=true;
+  camX=scx-dx; camY=clampY(scy-dy); applyCam(); if(moved){ walk(); cur=nearestAisle(camX); updateNav(); }
+  if(e.cancelable && e.touches) e.preventDefault(); }
+function up(){ if(!dragging) return; dragging=false; world.classList.remove("grabbing"); if(moved) goAisle(nearestAisle(camX)); }
 world.addEventListener("mousedown", down); window.addEventListener("mousemove", move); window.addEventListener("mouseup", up);
-world.addEventListener("touchstart", down, {passive:true}); world.addEventListener("touchmove", move, {passive:true}); world.addEventListener("touchend", up);
-window.addEventListener("keydown", e=>{ const ae=document.activeElement; if(ae && /input|textarea/i.test(ae.tagName)) return;
-  const map={ArrowRight:"right",ArrowLeft:"left",ArrowUp:"up",ArrowDown:"down"}; const d=map[e.key]; if(d){ const n=neighbor(d); if(n>=0) goSection(n); } });
+world.addEventListener("touchstart", down, {passive:false}); world.addEventListener("touchmove", move, {passive:false}); world.addEventListener("touchend", up);
 
-dpLeft.addEventListener("click", ()=>{ const n=neighbor("left"); if(n>=0) goSection(n); });
-dpRight.addEventListener("click", ()=>{ const n=neighbor("right"); if(n>=0) goSection(n); });
-dpUp.addEventListener("click", ()=>{ const n=neighbor("up"); if(n>=0) goSection(n); });
-dpDown.addEventListener("click", ()=>{ const n=neighbor("down"); if(n>=0) goSection(n); });
+/* Tap para caminar hacia el punto */
+world.addEventListener("click", e=>{ if(moved) return; if(e.target.closest(".product")||e.target.closest(".actors")||e.target.closest(".dpad")) return;
+  const r=world.getBoundingClientRect(); const wx=camX+(e.clientX-(r.left+stageW/2)), wy=camY+(e.clientY-(r.top+charY));
+  const i=nearestAisle(wx); cur=i; camX=pos[i].x; camY=Math.max(pos[i].minY,Math.min(pos[i].maxY,wy));
+  grid.classList.add("smooth"); applyCam(); updateNav(); walk(); setTimeout(()=>grid.classList.remove("smooth"),420); });
+
+window.addEventListener("keydown", e=>{ const ae=document.activeElement; if(ae && /input|textarea/i.test(ae.tagName)) return;
+  if(e.key==="ArrowRight") goAisle(cur+1); else if(e.key==="ArrowLeft") goAisle(cur-1);
+  else if(e.key==="ArrowUp") moveY(-STEP); else if(e.key==="ArrowDown") moveY(STEP); });
+dpLeft.addEventListener("click", ()=>goAisle(cur-1));
+dpRight.addEventListener("click", ()=>goAisle(cur+1));
+dpUp.addEventListener("click", ()=>moveY(-STEP));
+dpDown.addEventListener("click", ()=>moveY(STEP));
 
 /* Asesor: llevar a sección del producto */
-function sectionOfRack(rackId){ return stands.findIndex(s=>s.dataset.rack===rackId); }
-function teleport(id){ const p=PRODUCTOS.find(x=>x.id===id); if(!p) return; closeChat(); const i=sectionOfRack(p.rackId); if(i>=0) goSection(i);
-  setTimeout(()=>{ const el=world.querySelector('.product[data-id="'+id+'"]'); document.querySelectorAll(".product.spot").forEach(x=>x.classList.remove("spot"));
-    if(el){ el.classList.add("spot"); setTimeout(()=>el.classList.remove("spot"),3000); } },460); }
-function goPasillo(rackId){ closeChat(); const i=sectionOfRack(rackId); if(i>=0) goSection(i); }
+function aisleOfRack(rackId){ return aisles.findIndex(a=>a.dataset.rack===rackId); }
+function teleport(id){ const p=PRODUCTOS.find(x=>x.id===id); if(!p) return; closeChat(); const i=aisleOfRack(p.rackId); if(i<0) return;
+  cur=i; camX=pos[i].x; const el=world.querySelector('.product[data-id="'+id+'"]'); if(el) camY=Math.max(pos[i].minY,Math.min(pos[i].maxY, el.offsetTop+el.offsetHeight/2));
+  grid.classList.add("smooth"); applyCam(); updateNav(); walk(); setTimeout(()=>grid.classList.remove("smooth"),420);
+  setTimeout(()=>{ document.querySelectorAll(".product.spot").forEach(x=>x.classList.remove("spot"));
+    if(el){ el.classList.add("spot"); setTimeout(()=>el.classList.remove("spot"),3000); } },430); }
+function goPasillo(rackId){ closeChat(); const i=aisleOfRack(rackId); if(i>=0) goAisle(i); }
 
 /* ====== Mapa de la tienda ====== */
 const scrimM=document.getElementById("scrimM"), mapModal=document.getElementById("mapModal"), mmGrid=document.getElementById("mmGrid");
-function buildMap(){ mmGrid.style.gridTemplateColumns=`repeat(${COLS},1fr)`; mmGrid.innerHTML="";
-  stands.forEach((s,i)=>{ const n=PRODUCTOS.filter(p=>p.rackId===s.dataset.rack).length;
+const MMCOLS = Math.min(3, Math.max(1, Math.ceil(Math.sqrt(aisles.length||1))));
+function buildMap(){ mmGrid.style.gridTemplateColumns=`repeat(${MMCOLS},1fr)`; mmGrid.innerHTML="";
+  aisles.forEach((a,i)=>{ const n=PRODUCTOS.filter(p=>p.rackId===a.dataset.rack).length;
     const t=document.createElement("button"); t.className="mm-tile"+(i===cur?" here":"")+(n===0?" empty":"");
-    t.innerHTML=`<span class="pn">P${String(s.dataset.pasillo).padStart(2,"0")}</span><b>${s.dataset.name}</b><small>${n} producto${n===1?"":"s"}</small>`;
-    t.addEventListener("click", ()=>{ closeMap(); goSection(i); }); mmGrid.appendChild(t); }); }
+    t.innerHTML=`<span class="pn">P${String(a.dataset.pasillo).padStart(2,"0")}</span><b>${a.dataset.name}</b><small>${n} producto${n===1?"":"s"}</small>`;
+    t.addEventListener("click", ()=>{ closeMap(); goAisle(i); }); mmGrid.appendChild(t); }); }
 function openMap(){ buildMap(); scrimM.classList.add("open"); mapModal.classList.add("open"); }
 function closeMap(){ scrimM.classList.remove("open"); mapModal.classList.remove("open"); }
 document.getElementById("mapBtn").addEventListener("click", openMap);
@@ -372,7 +386,7 @@ document.getElementById("sheetAdd").addEventListener("click", ()=>{ if(actual){ 
 const chat=document.getElementById("chat"), chatCatch=document.getElementById("chatCatch"), advMsgs=document.getElementById("advMsgs");
 let advGreeted=false;
 function openChat(){ chat.classList.add("open"); chatCatch.classList.add("open");
-  if(!advGreeted){ advGreeted=true; botSay("¡Hola! 👷 Soy tu asesor. Escribe lo que buscas (ej. <b>taladro</b>, <b>llaves</b>) o pídeme <b>lo más barato</b> y te llevo a la sección."); renderChips(); }
+  if(!advGreeted){ advGreeted=true; botSay("¡Hola! 👷 Soy tu asesor. Escribe lo que buscas (ej. <b>taladro</b>, <b>llaves</b>) o pídeme <b>lo más barato</b> y te llevo al pasillo."); renderChips(); }
   setTimeout(()=>document.getElementById("advText").focus(),250); }
 function closeChat(){ chat.classList.remove("open"); chatCatch.classList.remove("open"); }
 chatCatch.addEventListener("click", closeChat); document.getElementById("chatX").addEventListener("click", closeChat);
@@ -428,7 +442,7 @@ function pickChar(idx){ playerFig.innerHTML=figHTML(PRESETS[idx]); try{ localSto
 playerFig.addEventListener("click", e=>{ e.stopPropagation(); openCharSelect(); });
 (function initChar(){ let idx=null; try{ const s=localStorage.getItem("tt_char"); if(s!==null) idx=parseInt(s,10); }catch(e){}
   if(idx!==null && PRESETS[idx]){ playerFig.innerHTML=figHTML(PRESETS[idx]); } else openCharSelect();
-  setTimeout(()=>{ document.getElementById("advBubble").style.display="none"; }, 6000); })();
+  setTimeout(()=>{ const b=document.getElementById("advBubble"); if(b) b.style.display="none"; }, 6000); })();
 
 /* ====== Sonido + animación + aviso ====== */
 let actx=null;
