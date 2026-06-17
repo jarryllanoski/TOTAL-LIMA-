@@ -271,7 +271,8 @@ const PRODUCTOS = TTDB.productos();
 const soles = n => "S/ " + (Number(n)||0).toFixed(2);
 const norm = s => String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
 const chunk = (a,n)=>{ const r=[]; for(let i=0;i<a.length;i+=n) r.push(a.slice(i,i+n)); return r; };
-const COLS = Math.min(3, Math.max(1, Math.ceil(Math.sqrt(RACKS.length||1))));
+const CFG = (typeof TTDB.config==="function") ? (TTDB.config()||{}) : {};
+const COLS = (CFG.cols>=1 && CFG.cols<=4) ? CFG.cols : Math.min(3, Math.max(1, Math.ceil(Math.sqrt(RACKS.length||1))));
 
 function figHTML(c){ return `<div class="fig" style="--skin:${c.skin||'#e8b98c'};--shirt:${c.shirt};--pants:${c.pants||'#2b3a55'};--hatd:${c.hat?'block':'none'};--hatc:${c.hatc||'#f7b500'}">
   <div class="hat"></div><div class="head"></div><div class="body${c.vest?' vest':''}"></div><div class="arm l"></div><div class="arm r"></div><div class="leg l"></div><div class="leg r"></div></div>`; }
