@@ -66,7 +66,7 @@
   function injectNav() {
     if (document.getElementById("ttnav-btn")) return;
     var page = (location.pathname.split("/").pop() || "index.html").toLowerCase();
-    var cur = page.indexOf("admin") >= 0 ? "admin" : page.indexOf("caja") >= 0 ? "caja" : "tienda";
+    var cur = page.indexOf("admin") >= 0 ? "admin" : page.indexOf("caja") >= 0 ? "caja" : page.indexOf("diseno") >= 0 ? "diseno" : "tienda";
 
     var st = document.createElement("style");
     st.textContent =
@@ -96,6 +96,7 @@
     }
     menu.innerHTML = '<div class="h">MÓDULOS</div>' +
       row("tienda", "index.html", "🎮", "Tienda") +
+      row("diseno", "diseno.html", "🧱", "Diseño") +
       row("admin", "admin.html", "⚙️", "Admin") +
       row("caja", "caja.html", "🧾", "Caja");
 
