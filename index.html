@@ -33,7 +33,7 @@ button{ font-family:inherit; cursor:pointer; border:none; }
 .topbar{ position:fixed; inset:0 0 auto 0; z-index:40; height:56px; display:flex; align-items:center; gap:7px;
   padding:0 12px; background:linear-gradient(#1a1d23ee,#1a1d23cc); backdrop-filter:blur(6px); border-bottom:1px solid #0008; }
 .brand{ display:flex; align-items:center; gap:7px; flex:0 0 auto; }
-.brand .logo{ width:32px; height:32px; border-radius:9px; display:grid; place-items:center; background:var(--amarillo); color:var(--negro); font-size:19px; box-shadow:0 2px 0 #0006; }
+.brand .logo{ width:32px; height:32px; border-radius:9px; display:grid; place-items:center; background:var(--amarillo); color:var(--negro); font-size:19px; box-shadow:0 2px 0 #0006; text-decoration:none; cursor:pointer; }
 .brand .name b{ font-size:12px; display:block; line-height:1; } .brand .name span{ font-size:8px; color:var(--texto-mute); letter-spacing:1.5px; }
 .hdr-btn{ flex:0 0 auto; width:38px; height:38px; border-radius:11px; background:#14161a; border:1px solid #ffffff1c; color:var(--amarillo); font-size:19px; }
 .top-search{ flex:1; min-width:0; display:flex; align-items:center; gap:6px; background:#0d0f13; border:1px solid #2c2f37; border-radius:999px; padding:0 6px 0 12px; }
@@ -201,7 +201,7 @@ button{ font-family:inherit; cursor:pointer; border:none; }
 <body>
 
 <header class="topbar">
-  <div class="brand"><div class="logo signage">T</div><div class="name"><b class="signage">TOTAL TOOLS</b><span>FERRETERÍA</span></div></div>
+  <div class="brand"><a class="logo signage" href="admin.html" aria-label="Abrir panel Admin">T</a><div class="name"><b class="signage">TOTAL TOOLS</b><span>FERRETERÍA</span></div></div>
   <button class="hdr-btn" id="modBtn" aria-label="Módulos (Admin / Caja)">⊞</button>
   <button class="map-btn" id="mapBtn" aria-label="Ver toda la tienda">🗺️</button>
   <div class="top-search"><input id="topSearch" placeholder="Buscar herramientas…" autocomplete="off" /><button id="topSearchBtn" aria-label="Buscar">🔍</button></div>
