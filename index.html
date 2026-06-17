@@ -50,6 +50,10 @@ button{ font-family:inherit; cursor:pointer; border:none; }
 .section-banner .hint{ margin-left:auto; font-size:11px; color:#14161a; background:#ffffffcc; padding:3px 9px; border-radius:999px; font-weight:700; }
 
 .stage{ position:fixed; inset:94px 0 0 0; overflow:hidden; }
+.amb{ position:absolute; inset:0; z-index:15; pointer-events:none;
+  background:
+    radial-gradient(120% 55% at 50% -12%, #ffe6a52e 0%, #0000 46%),
+    radial-gradient(150% 100% at 50% 48%, #0000 58%, #00000066 100%); }
 .world{ position:absolute; inset:0; overflow:hidden; cursor:pointer; touch-action:none; z-index:1;
   background:repeating-linear-gradient(0deg,#f7b5001a 0 3px,#0000 3px 30px), repeating-linear-gradient(90deg,#f7b5001a 0 3px,#0000 3px 30px), linear-gradient(#1c2026,#15171c); }
 .store-grid{ position:absolute; top:0; left:0; transform-origin:0 0; will-change:transform; display:flex; flex-direction:column; gap:120px; padding:18px 90px 0; }
@@ -69,7 +73,8 @@ button{ font-family:inherit; cursor:pointer; border:none; }
   background:radial-gradient(circle at 50% 35%,#ffffff14,#0000), linear-gradient(160deg,#2f343d,#202329); border:1px solid #ffffff10; box-shadow:var(--sombra); position:relative; }
 .product .photo img{ width:100%; height:100%; object-fit:cover; }
 .product .photo .vid{ position:absolute; top:5px; right:5px; font-size:10px; background:#000a; color:#fff; padding:2px 6px; border-radius:6px; }
-.product .pname{ font-size:11px; line-height:1.1; height:26px; overflow:hidden; color:#1a1a1a; font-weight:700; }
+.product .pname{ font-size:11px; line-height:1.15; min-height:26px; max-height:40px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; color:#1a1a1a; font-weight:700; }
+.product .photo .ph-ic{ filter:drop-shadow(0 4px 6px #0006); }
 .product .ptag{ align-self:flex-start; background:var(--amarillo); color:var(--negro); font-size:12px; padding:2px 8px; border-radius:6px; font-weight:700; box-shadow:0 2px 0 #0005; }
 .product.spot .photo{ box-shadow:0 0 0 3px var(--amarillo), 0 0 26px #f7b50099, var(--sombra); animation:spot 1.4s ease 2; }
 @keyframes spot{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-8px); } }
@@ -104,6 +109,8 @@ button{ font-family:inherit; cursor:pointer; border:none; }
 @keyframes bobup{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-2px) } }
 
 .fig{ position:relative; width:36px; height:66px; flex:0 0 auto; }
+.player .fig{ transition:transform .12s ease; }
+.actors.face-l .player .fig{ transform:scaleX(-1); }
 .fig .head{ position:absolute; top:2px; left:50%; transform:translateX(-50%); width:19px; height:19px; border-radius:50%; background:var(--skin,#e8b98c); z-index:2; box-shadow:inset -2px -1px 0 #0000001a; }
 .fig .hat{ position:absolute; top:-3px; left:50%; transform:translateX(-50%); width:25px; height:10px; border-radius:13px 13px 3px 3px; background:var(--hatc,#f7b500); z-index:3; display:var(--hatd,none); box-shadow:inset 0 -2px 0 #00000022; }
 .fig .body{ position:absolute; top:18px; left:50%; transform:translateX(-50%); width:27px; height:28px; border-radius:9px 9px 6px 6px; background:var(--shirt,#3b82f6); z-index:1; box-shadow:inset 0 -6px 0 #00000012; }
@@ -208,6 +215,7 @@ button{ font-family:inherit; cursor:pointer; border:none; }
 <div class="stage">
   <div class="world" id="world"><div class="store-grid" id="grid"></div></div>
   <div class="road"></div>
+  <div class="amb"></div>
   <div class="actors" id="actors">
     <div class="player" id="player">
       <div class="figwrap" id="playerFig"></div>
@@ -272,10 +280,32 @@ document.getElementById("advisorFig").innerHTML = figHTML({shirt:'#f7b500',pants
 
 /* ====== Construir corredores (filas) de góndolas ====== */
 const world=document.getElementById("world"), grid=document.getElementById("grid");
+function guessIcon(n){ const s=norm(n);
+  const map=[
+    [/(taladro|rotomartillo|atornillad|destornillad|perforad)/,"🪛"],
+    [/(amoladora|esmeril|pulidora|disco)/,"⚙️"],
+    [/(sierra|serrucho|caladora|tronzad)/,"🪚"],
+    [/(llave|dado|ratchet|alicate|pinza|tenaza|crece)/,"🔧"],
+    [/(martillo|comba|mazo|cincel)/,"🔨"],
+    [/(cinta|metro|wincha|nivel|escuadra|medi|flexom)/,"📏"],
+    [/(clavo|tornillo|perno|tuerca|arandela|tarugo|fija)/,"🔩"],
+    [/(pintura|brocha|rodillo|esmalte|spray|barniz)/,"🖌️"],
+    [/(cable|enchufe|tomacorr|interruptor|electric|extension)/,"🔌"],
+    [/(foco|luz|lampar|linterna|led|reflector)/,"💡"],
+    [/(manguera|tubo|pvc|gasfiter|cano|grifo|valvula|llave de agua)/,"🚰"],
+    [/(guante|casco|lente|mascar|proteccion|arnes|chaleco|seguridad)/,"🦺"],
+    [/(candado|cerradura|chapa|bisagra)/,"🔒"],
+    [/(pila|bateria|cargador|power)/,"🔋"],
+    [/(soldador|soldadura|electrodo)/,"🔥"],
+    [/(broca|fresa|punta)/,"🦷"]
+  ];
+  for(const [re,em] of map){ if(re.test(s)) return em; } return "🛠️"; }
 function productCard(p){
   const el=document.createElement("button"); el.className="product"; el.dataset.id=p.id; el.setAttribute("aria-label",p.nombre);
-  const photo=p.foto?`<img src="${p.foto}" alt="">`:p.emoji;
-  el.innerHTML=`<div class="photo">${photo}<span class="vid">▶ video</span></div><div class="pname">${p.nombre}</div><div class="ptag mono">${soles(p.precio)}</div>`;
+  const ic=(p.emoji&&p.emoji!=="📦")?p.emoji:guessIcon(p.nombre);
+  const photo=p.foto?`<img src="${p.foto}" alt="">`:`<span class="ph-ic">${ic}</span>`;
+  const vid=p.video?`<span class="vid">▶ video</span>`:"";
+  el.innerHTML=`<div class="photo">${photo}${vid}</div><div class="pname">${p.nombre}</div><div class="ptag mono">${soles(p.precio)}</div>`;
   el.addEventListener("click", e=>{ e.stopPropagation(); if(!moved) openSheet(p); }); return el;
 }
 function buildBay(rack){
@@ -321,7 +351,8 @@ function updateNav(){ const r=rowInfo[charRow]; if(!r) return; cur=nearestBayInR
   dpLeft.classList.toggle("on", cur>0); dpRight.classList.toggle("on", cur<r.bays.length-1);
   dpUp.classList.toggle("on", charRow>0); dpDown.classList.toggle("on", charRow<rowInfo.length-1); }
 function loop(){ let busy=false;
-  const dx=tx-charX; if(Math.abs(dx)>=2){ charX+=Math.sign(dx)*Math.min(SPEED,Math.abs(dx)); busy=true; } else charX=tx;
+  const dx=tx-charX; if(dx<-2) actors.classList.add("face-l"); else if(dx>2) actors.classList.remove("face-l");
+  if(Math.abs(dx)>=2){ charX+=Math.sign(dx)*Math.min(SPEED,Math.abs(dx)); busy=true; } else charX=tx;
   const dy=camYT-camY; if(Math.abs(dy)>=2){ camY+=Math.sign(dy)*Math.min(SPEED*2.6,Math.abs(dy)); busy=true; } else camY=camYT;
   followCam(); render(); updateNav();
   if(busy){ actors.classList.add("walking"); raf=requestAnimationFrame(loop); } else { actors.classList.remove("walking"); raf=null; } }
@@ -383,7 +414,7 @@ document.getElementById("modBtn").addEventListener("click", ()=>{ const m=docume
 /* ====== Hoja producto ====== */
 const scrim=document.getElementById("scrim"), sheet=document.getElementById("sheet"); let actual=null;
 function openSheet(p){ actual=p;
-  document.getElementById("sheetPh").innerHTML=p.foto?`<img src="${p.foto}" alt="">`:p.emoji;
+  document.getElementById("sheetPh").innerHTML=p.foto?`<img src="${p.foto}" alt="">`:`<span class="ph-ic">${(p.emoji&&p.emoji!=="📦")?p.emoji:guessIcon(p.nombre)}</span>`;
   document.getElementById("sheetBrand").textContent=p.marca||"TOTAL"; document.getElementById("sheetName").textContent=p.nombre;
   document.getElementById("sheetPrice").textContent=soles(p.precio); document.getElementById("sheetDesc").textContent=p.desc||"";
   scrim.classList.add("open"); sheet.classList.add("open"); }
@@ -410,7 +441,7 @@ function renderChips(){ const chips=document.getElementById("advChips"); chips.i
   const add=(t,fn)=>{ const b=document.createElement("button"); b.className="chat-chip"; b.textContent=t; b.addEventListener("click",fn); chips.appendChild(b); };
   RACKS.forEach(r=>add("📍 "+r.nombre, ()=>{ meSay(r.nombre); answer("pasillo:"+r.id); }));
   add("💰 Lo más barato", ()=>{ meSay("Lo más barato"); answer("barato"); }); }
-function resultCard(p){ const photo=p.foto?`<img src="${p.foto}">`:(p.emoji||"📦");
+function resultCard(p){ const photo=p.foto?`<img src="${p.foto}">`:((p.emoji&&p.emoji!=="📦")?p.emoji:guessIcon(p.nombre));
   const d=document.createElement("div"); d.className="res";
   d.innerHTML=`<div class="e">${photo}</div><div class="i"><b>${p.nombre}</b><span class="mono">${soles(p.precio)}</span></div><button class="go">Ir 📍</button>`;
   d.querySelector(".go").addEventListener("click", ()=>teleport(p.id)); return d; }
