@@ -26,17 +26,22 @@ button{ font-family:inherit; cursor:pointer; border:none; }
 .mono{ font-family:ui-monospace,"SF Mono","Roboto Mono",Menlo,monospace; }
 .signage{ font-family:"Anton",system-ui,sans-serif; letter-spacing:.5px; text-transform:uppercase; }
 
-.topbar{ position:fixed; inset:0 0 auto 0; z-index:40; height:56px; display:flex; align-items:center; gap:8px;
+/* Mover el menú de módulos (db.js) ARRIBA */
+#ttnav-btn{ display:none !important; }
+#ttnav-menu{ top:62px !important; bottom:auto !important; left:12px !important; transform-origin:top left !important; }
+
+.topbar{ position:fixed; inset:0 0 auto 0; z-index:40; height:56px; display:flex; align-items:center; gap:7px;
   padding:0 12px; background:linear-gradient(#1a1d23ee,#1a1d23cc); backdrop-filter:blur(6px); border-bottom:1px solid #0008; }
-.brand{ display:flex; align-items:center; gap:8px; flex:0 0 auto; }
+.brand{ display:flex; align-items:center; gap:7px; flex:0 0 auto; }
 .brand .logo{ width:32px; height:32px; border-radius:9px; display:grid; place-items:center; background:var(--amarillo); color:var(--negro); font-size:19px; box-shadow:0 2px 0 #0006; }
-.brand .name b{ font-size:13px; display:block; line-height:1; } .brand .name span{ font-size:8px; color:var(--texto-mute); letter-spacing:1.5px; }
+.brand .name b{ font-size:12px; display:block; line-height:1; } .brand .name span{ font-size:8px; color:var(--texto-mute); letter-spacing:1.5px; }
+.hdr-btn{ flex:0 0 auto; width:38px; height:38px; border-radius:11px; background:#14161a; border:1px solid #ffffff1c; color:var(--amarillo); font-size:19px; }
 .top-search{ flex:1; min-width:0; display:flex; align-items:center; gap:6px; background:#0d0f13; border:1px solid #2c2f37; border-radius:999px; padding:0 6px 0 12px; }
 .top-search input{ flex:1; min-width:0; background:none; border:none; outline:none; color:var(--texto); font-size:14px; padding:10px 0; }
 .top-search input::placeholder{ color:#7d7f86; }
 .top-search button{ width:34px; height:34px; flex:0 0 auto; border-radius:50%; background:var(--amarillo); color:var(--negro); font-size:15px; }
 .map-btn{ flex:0 0 auto; width:38px; height:38px; border-radius:11px; background:#14161a; border:1px solid #ffffff1c; color:var(--amarillo); font-size:18px; }
-@media (max-width:560px){ .brand .name{ display:none; } }
+@media (max-width:600px){ .brand .name{ display:none; } }
 
 .section-banner{ position:fixed; left:0; right:0; top:56px; z-index:30; height:38px; display:flex; align-items:center; gap:10px;
   padding:0 14px; color:var(--negro); background:repeating-linear-gradient(45deg,#f7b500 0 18px,#14161a 18px 36px); box-shadow:0 4px 14px #0007; }
@@ -47,7 +52,8 @@ button{ font-family:inherit; cursor:pointer; border:none; }
 .stage{ position:fixed; inset:94px 0 0 0; overflow:hidden; }
 .world{ position:absolute; inset:0; overflow:hidden; cursor:pointer; touch-action:none; z-index:1;
   background:repeating-linear-gradient(0deg,#f7b5001a 0 3px,#0000 3px 30px), repeating-linear-gradient(90deg,#f7b5001a 0 3px,#0000 3px 30px), linear-gradient(#1c2026,#15171c); }
-.store-grid{ position:absolute; top:0; left:0; transform-origin:0 0; will-change:transform; display:flex; align-items:flex-start; gap:46px; padding:18px 90px 0; }
+.store-grid{ position:absolute; top:0; left:0; transform-origin:0 0; will-change:transform; display:flex; flex-direction:column; gap:120px; padding:18px 90px 0; }
+.corridor{ display:flex; align-items:flex-start; gap:46px; }
 
 .bay{ position:relative; flex:0 0 auto; background:radial-gradient(circle at center,#0000 2px,#00000022 3px) 0 0/22px 22px, linear-gradient(180deg,var(--pegboard),var(--pegboard-2));
   background-blend-mode:multiply,normal; border:3px solid #00000044; border-radius:16px; padding:10px 12px 14px; box-shadow:0 16px 34px #0009; }
@@ -68,26 +74,25 @@ button{ font-family:inherit; cursor:pointer; border:none; }
 .product.spot .photo{ box-shadow:0 0 0 3px var(--amarillo), 0 0 26px #f7b50099, var(--sombra); animation:spot 1.4s ease 2; }
 @keyframes spot{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-8px); } }
 
-/* Pista (piso) donde camina el personaje */
-.road{ position:absolute; left:0; right:0; bottom:0; height:118px; z-index:10; pointer-events:none;
+.road{ position:absolute; left:0; right:0; bottom:0; height:120px; z-index:10; pointer-events:none;
   background:linear-gradient(#15171c00, #0d0f13 34%); }
 .road::before{ content:""; position:absolute; left:0; right:0; top:54%; height:5px; background:repeating-linear-gradient(90deg,#f7b500 0 34px,#0000 34px 64px); opacity:.8; }
 
-/* Personajes: el JS pone su posición (left); caminan por la pista */
-.actors{ position:absolute; left:0; top:0; transform:translate(-50%,-100%); z-index:20; display:flex; align-items:flex-end; gap:4px; pointer-events:none; }
+.actors{ position:absolute; left:0; top:0; transform:translate(-50%,-100%); z-index:20; display:flex; align-items:flex-end; gap:0; pointer-events:none; }
 .player,.advisor{ position:relative; display:flex; align-items:flex-end; pointer-events:auto; }
-.advisor{ margin-left:12px; cursor:pointer; }
-.cart-btn{ position:relative; background:none; margin-left:-2px; cursor:pointer; }
-.cart-btn .badge{ position:absolute; top:-8px; right:-8px; min-width:21px; height:21px; padding:0 5px; border-radius:999px; background:#e0392b; color:#fff; font-size:11px; font-weight:800; display:grid; place-items:center; border:2px solid var(--concreto); transform:scale(0); transition:transform .2s; z-index:4; }
+.advisor{ margin-left:18px; cursor:pointer; }
+.cart-btn{ position:relative; background:none; margin-left:-10px; cursor:pointer; align-self:flex-end; }
+.cart-btn .badge{ position:absolute; top:-6px; right:-6px; min-width:23px; height:23px; padding:0 5px; border-radius:999px; background:#e0392b; color:#fff; font-size:12px; font-weight:800; display:grid; place-items:center; border:2px solid var(--concreto); transform:scale(0); transition:transform .2s; z-index:4; }
 .cart-btn .badge.show{ transform:scale(1); }
 .cart-btn.bump{ animation:bump .35s ease; }
-@keyframes bump{ 0%,100%{ transform:scale(1); } 40%{ transform:scale(1.18); } }
-.cartfig{ position:relative; width:42px; height:36px; filter:drop-shadow(0 5px 4px #0008); }
-.cartfig .basket{ position:absolute; left:8px; top:5px; width:30px; height:17px; background:#a9dbe8; border:2px solid #4f9aac; border-radius:1px 3px 7px 7px; transform:skewX(-9deg);
-  background-image:repeating-linear-gradient(90deg,#4f9aac66 0 1px,#0000 1px 6px),repeating-linear-gradient(0deg,#4f9aac66 0 1px,#0000 1px 5px); }
-.cartfig .handle{ position:absolute; left:-1px; top:1px; width:10px; height:14px; border-left:2.5px solid #4f9aac; border-top:2.5px solid #4f9aac; border-radius:3px 0 0 0; transform:rotate(-9deg); }
-.cartfig .wheel{ position:absolute; bottom:0; width:9px; height:9px; border-radius:50%; background:#2a2a2a; border:2px solid #9aa; }
-.cartfig .wheel.l{ left:11px; } .cartfig .wheel.r{ right:5px; }
+@keyframes bump{ 0%,100%{ transform:scale(1); } 40%{ transform:scale(1.16); } }
+/* Carrito GRANDE sostenido por el cliente */
+.cartfig{ position:relative; width:62px; height:54px; filter:drop-shadow(0 6px 5px #0008); }
+.cartfig .basket{ position:absolute; left:14px; top:8px; width:42px; height:25px; background:#a9dbe8; border:3px solid #4f9aac; border-radius:2px 4px 9px 9px; transform:skewX(-9deg);
+  background-image:repeating-linear-gradient(90deg,#4f9aac66 0 1px,#0000 1px 8px),repeating-linear-gradient(0deg,#4f9aac66 0 1px,#0000 1px 7px); }
+.cartfig .handle{ position:absolute; left:0; top:2px; width:15px; height:20px; border-left:3px solid #4f9aac; border-top:3px solid #4f9aac; border-radius:4px 0 0 0; transform:rotate(-9deg); }
+.cartfig .wheel{ position:absolute; bottom:0; width:12px; height:12px; border-radius:50%; background:#2a2a2a; border:2.5px solid #9aa; }
+.cartfig .wheel.l{ left:18px; } .cartfig .wheel.r{ right:7px; }
 .actors.walking .cartfig .wheel{ animation:spin .3s linear infinite; }
 @keyframes spin{ to{ transform:rotate(360deg) } }
 .player .figwrap{ cursor:pointer; }
@@ -112,15 +117,11 @@ button{ font-family:inherit; cursor:pointer; border:none; }
 @keyframes legA{ 0%,100%{ transform:rotate(15deg) } 50%{ transform:rotate(-15deg) } }
 @keyframes legB{ 0%,100%{ transform:rotate(-15deg) } 50%{ transform:rotate(15deg) } }
 
-.nav-arrow{ position:fixed; bottom:calc(40px + var(--safe-b)); z-index:45; width:46px; height:46px; border-radius:50%;
-  background:#14161abb; border:1px solid #ffffff26; color:var(--amarillo); font-size:18px; display:none; place-items:center; box-shadow:var(--sombra); backdrop-filter:blur(3px); }
-.nav-arrow.on{ display:grid; } .nav-arrow:active{ background:#000; }
-.nav-arrow.left{ left:14px; } .nav-arrow.right{ right:14px; }
-
-.cart-fab{ position:fixed; right:16px; bottom:calc(96px + var(--safe-b)); z-index:46; width:54px; height:54px; border-radius:50%; background:var(--amarillo); color:var(--negro); display:grid; place-items:center; font-size:23px; box-shadow:0 8px 22px #000a,0 2px 0 #0006; }
-.cart-fab:active{ transform:scale(.92); }
-.cart-fab .badge2{ position:absolute; top:-4px; right:-4px; min-width:22px; height:22px; padding:0 5px; border-radius:999px; background:#e0392b; color:#fff; font-size:11px; font-weight:800; display:grid; place-items:center; border:2px solid var(--concreto); transform:scale(0); transition:transform .2s; }
-.cart-fab .badge2.show{ transform:scale(1); }
+/* Mini-pad lateral (no estorba abajo) */
+.dpad{ position:fixed; right:10px; top:54%; transform:translateY(-50%); z-index:45; display:grid; grid-template-columns:repeat(3,38px); grid-template-rows:repeat(3,38px); gap:5px; }
+.dpad .sp{ visibility:hidden; }
+.dpad .dp{ width:38px; height:38px; border-radius:50%; background:#14161abb; border:1px solid #ffffff26; color:var(--amarillo); font-size:15px; display:none; place-items:center; box-shadow:var(--sombra); backdrop-filter:blur(3px); }
+.dpad .dp.on{ display:grid; } .dpad .dp:active{ background:#000; }
 
 .scrim{ position:fixed; inset:0; z-index:60; background:#000c; opacity:0; pointer-events:none; transition:opacity .25s; }
 .scrim.open{ opacity:1; pointer-events:auto; }
@@ -194,8 +195,9 @@ button{ font-family:inherit; cursor:pointer; border:none; }
 
 <header class="topbar">
   <div class="brand"><div class="logo signage">T</div><div class="name"><b class="signage">TOTAL TOOLS</b><span>FERRETERÍA</span></div></div>
-  <div class="top-search"><input id="topSearch" placeholder="Buscar herramientas…" autocomplete="off" /><button id="topSearchBtn" aria-label="Buscar">🔍</button></div>
+  <button class="hdr-btn" id="modBtn" aria-label="Módulos (Admin / Caja)">⊞</button>
   <button class="map-btn" id="mapBtn" aria-label="Ver toda la tienda">🗺️</button>
+  <div class="top-search"><input id="topSearch" placeholder="Buscar herramientas…" autocomplete="off" /><button id="topSearchBtn" aria-label="Buscar">🔍</button></div>
 </header>
 
 <div class="section-banner">
@@ -219,9 +221,11 @@ button{ font-family:inherit; cursor:pointer; border:none; }
   </div>
 </div>
 
-<button class="nav-arrow left" id="navLeft" aria-label="Pasillo anterior">◀</button>
-<button class="nav-arrow right" id="navRight" aria-label="Pasillo siguiente">▶</button>
-<button class="cart-fab" id="cartFab" aria-label="Ir a caja">🛒<span class="badge2" id="cartBadge2">0</span></button>
+<div class="dpad" id="dpad">
+  <span class="sp"></span><button class="dp" id="dpUp" aria-label="Pasillo de arriba">▲</button><span class="sp"></span>
+  <button class="dp" id="dpLeft" aria-label="Izquierda">◀</button><span class="sp"></span><button class="dp" id="dpRight" aria-label="Derecha">▶</button>
+  <span class="sp"></span><button class="dp" id="dpDown" aria-label="Pasillo de abajo">▼</button><span class="sp"></span>
+</div>
 
 <div class="scrim" id="scrim"></div>
 <div class="sheet" id="sheet">
@@ -258,13 +262,15 @@ const RACKS = TTDB.racks().slice().sort((a,b)=>a.pasillo-b.pasillo);
 const PRODUCTOS = TTDB.productos();
 const soles = n => "S/ " + (Number(n)||0).toFixed(2);
 const norm = s => String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+const chunk = (a,n)=>{ const r=[]; for(let i=0;i<a.length;i+=n) r.push(a.slice(i,i+n)); return r; };
+const COLS = Math.min(3, Math.max(1, Math.ceil(Math.sqrt(RACKS.length||1))));
 
 function figHTML(c){ return `<div class="fig" style="--skin:${c.skin||'#e8b98c'};--shirt:${c.shirt};--pants:${c.pants||'#2b3a55'};--hatd:${c.hat?'block':'none'};--hatc:${c.hatc||'#f7b500'}">
   <div class="hat"></div><div class="head"></div><div class="body${c.vest?' vest':''}"></div><div class="arm l"></div><div class="arm r"></div><div class="leg l"></div><div class="leg r"></div></div>`; }
 const PRESETS=[{shirt:'#3b82f6',pants:'#1f2a44'},{shirt:'#ef4444',pants:'#3a1f1f'},{shirt:'#22c55e',pants:'#1f3a26',hat:true,hatc:'#f7b500'},{shirt:'#a855f7',pants:'#2e1f3a'},{shirt:'#f7b500',pants:'#3a3320',hat:true,hatc:'#ffffff'},{shirt:'#14b8a6',pants:'#163a36'},{shirt:'#f97316',pants:'#3a2616',hat:true,hatc:'#ffffff'},{shirt:'#cbd5e1',pants:'#2b3a55'}];
 document.getElementById("advisorFig").innerHTML = figHTML({shirt:'#f7b500',pants:'#1a1d23',hat:true,hatc:'#f97316',vest:true});
 
-/* ====== Construir góndolas (productos siempre visibles, 2 filas) ====== */
+/* ====== Construir corredores (filas) de góndolas ====== */
 const world=document.getElementById("world"), grid=document.getElementById("grid");
 function productCard(p){
   const el=document.createElement("button"); el.className="product"; el.dataset.id=p.id; el.setAttribute("aria-label",p.nombre);
@@ -272,91 +278,107 @@ function productCard(p){
   el.innerHTML=`<div class="photo">${photo}<span class="vid">▶ video</span></div><div class="pname">${p.nombre}</div><div class="ptag mono">${soles(p.precio)}</div>`;
   el.addEventListener("click", e=>{ e.stopPropagation(); if(!moved) openSheet(p); }); return el;
 }
-function buildStore(){
-  RACKS.forEach(rack=>{
-    const prods=PRODUCTOS.filter(p=>p.rackId===rack.id);
-    const bay=document.createElement("div"); bay.className="bay"; bay.dataset.rack=rack.id; bay.dataset.name=rack.nombre; bay.dataset.pasillo=rack.pasillo;
-    bay.innerHTML=`<div class="bay-sign signage">Pasillo ${String(rack.pasillo).padStart(2,"0")} · ${rack.nombre}</div>`;
-    const rows=document.createElement("div"); rows.className="bay-rows";
-    if(!prods.length){ rows.innerHTML=`<div class="bay-empty">— estante vacío · agrega en Admin —</div>`; }
-    else{ const half=Math.ceil(prods.length/2); [prods.slice(0,half), prods.slice(half)].forEach(list=>{ if(!list.length) return;
-      const row=document.createElement("div"); row.className="bay-row"; list.forEach(p=>row.appendChild(productCard(p)));
-      const ledge=document.createElement("div"); ledge.className="ledge"; rows.appendChild(row); rows.appendChild(ledge); }); }
-    bay.appendChild(rows); grid.appendChild(bay);
-  });
+function buildBay(rack){
+  const prods=PRODUCTOS.filter(p=>p.rackId===rack.id);
+  const bay=document.createElement("div"); bay.className="bay"; bay.dataset.rack=rack.id; bay.dataset.name=rack.nombre; bay.dataset.pasillo=rack.pasillo;
+  bay.innerHTML=`<div class="bay-sign signage">Pasillo ${String(rack.pasillo).padStart(2,"0")} · ${rack.nombre}</div>`;
+  const rows=document.createElement("div"); rows.className="bay-rows";
+  if(!prods.length){ rows.innerHTML=`<div class="bay-empty">— estante vacío · agrega en Admin —</div>`; }
+  else{ const half=Math.ceil(prods.length/2); [prods.slice(0,half), prods.slice(half)].forEach(list=>{ if(!list.length) return;
+    const row=document.createElement("div"); row.className="bay-row"; list.forEach(p=>row.appendChild(productCard(p)));
+    const ledge=document.createElement("div"); ledge.className="ledge"; rows.appendChild(row); rows.appendChild(ledge); }); }
+  bay.appendChild(rows); return bay;
 }
+function buildStore(){ chunk(RACKS, COLS).forEach(rowRacks=>{ const corr=document.createElement("div"); corr.className="corridor";
+  rowRacks.forEach(rack=>corr.appendChild(buildBay(rack))); grid.appendChild(corr); }); }
 buildStore();
+const corridors=[...grid.querySelectorAll(".corridor")];
 const bays=[...grid.querySelectorAll(".bay")];
 
-/* ====== El PERSONAJE camina por la pista; góndolas fijas; cámara con zona muerta ====== */
+/* ====== El PERSONAJE camina; góndolas fijas; cambia de corredor con ▲▼ ====== */
 const actors=document.getElementById("actors");
 const sectionName=document.getElementById("sectionName"), pasilloLabel=document.getElementById("pasilloLabel");
-const navLeft=document.getElementById("navLeft"), navRight=document.getElementById("navRight");
-let stageW=0, stageH=0, gridW=0, roadY=0, pos=[], minX=0, maxX=0, cur=0, moved=false;
-let camX=0, charX=0, tx=0, raf=null;
+const dpUp=document.getElementById("dpUp"), dpDown=document.getElementById("dpDown"), dpLeft=document.getElementById("dpLeft"), dpRight=document.getElementById("dpRight");
+let stageW=0, stageH=0, gridW=0, roadY=0, rowInfo=[], cur=0, charRow=0, moved=false;
+let camX=0, camY=0, camYT=0, charX=0, tx=0, raf=null;
 const SPEED=8;
 
 function measure(){
-  stageW=world.clientWidth; stageH=world.clientHeight; gridW=grid.scrollWidth; roadY=stageH-46;
+  stageW=world.clientWidth; stageH=world.clientHeight; gridW=grid.scrollWidth; roadY=stageH-44;
   const gr=grid.getBoundingClientRect();
-  pos = bays.map(b=>{ const r=b.getBoundingClientRect(); return { left:(r.left-gr.left), right:(r.right-gr.left), x:(r.left-gr.left)+r.width/2 }; });
-  minX = pos.length? pos[0].left+30 : 0; maxX = pos.length? pos[pos.length-1].right-30 : 0;
+  rowInfo = corridors.map(c=>{ const cr=c.getBoundingClientRect();
+    const bb=[...c.querySelectorAll(".bay")].map(b=>{ const r=b.getBoundingClientRect(); return { rack:b.dataset.rack, name:b.dataset.name, pasillo:b.dataset.pasillo, x:(r.left-gr.left)+r.width/2 }; });
+    return { top:(cr.top-gr.top), minX:bb.length?bb[0].x-26:0, maxX:bb.length?bb[bb.length-1].x+26:0, bays:bb }; });
 }
-function nearestBay(x){ let bi=0,bd=1e15; pos.forEach((p,i)=>{ const d=Math.abs(p.x-x); if(d<bd){bd=d;bi=i;} }); return bi; }
+function rowCamY(row){ return Math.max(0, rowInfo[row].top - 18); }
+function nearestBayInRow(row,x){ const b=rowInfo[row].bays; let bi=0,bd=1e15; b.forEach((p,i)=>{ const d=Math.abs(p.x-x); if(d<bd){bd=d;bi=i;} }); return bi; }
 function followCam(){ const sx=charX-camX;
   if(sx<stageW*0.32) camX=charX-stageW*0.32; else if(sx>stageW*0.68) camX=charX-stageW*0.68;
   camX=Math.max(0,Math.min(Math.max(0,gridW-stageW),camX)); }
-function render(){ grid.style.transform=`translate(${-Math.round(camX)}px,0px)`; actors.style.left=Math.round(charX-camX)+"px"; actors.style.top=Math.round(roadY)+"px"; }
-function updateNav(){ cur=nearestBay(charX); const b=bays[cur];
-  if(b){ sectionName.textContent=(b.dataset.name||"").toUpperCase(); pasilloLabel.textContent="PASILLO "+String(b.dataset.pasillo).padStart(2,"0"); }
-  navLeft.classList.toggle("on", cur>0); navRight.classList.toggle("on", cur<bays.length-1); }
-function step(){ const dx=tx-charX, dist=Math.abs(dx);
-  if(dist<2){ charX=tx; actors.classList.remove("walking"); followCam(); render(); updateNav(); raf=null; return; }
-  charX+=Math.sign(dx)*Math.min(SPEED,dist); followCam(); render(); updateNav(); raf=requestAnimationFrame(step); }
-function walkTo(x){ tx=Math.max(minX,Math.min(maxX,x)); actors.classList.add("walking"); if(!raf) raf=requestAnimationFrame(step); }
+function render(){ grid.style.transform=`translate(${-Math.round(camX)}px,${-Math.round(camY)}px)`; actors.style.left=Math.round(charX-camX)+"px"; actors.style.top=Math.round(roadY)+"px"; }
+function updateNav(){ const r=rowInfo[charRow]; if(!r) return; cur=nearestBayInRow(charRow,charX); const b=r.bays[cur];
+  if(b){ sectionName.textContent=(b.name||"").toUpperCase(); pasilloLabel.textContent="PASILLO "+String(b.pasillo).padStart(2,"0"); }
+  dpLeft.classList.toggle("on", cur>0); dpRight.classList.toggle("on", cur<r.bays.length-1);
+  dpUp.classList.toggle("on", charRow>0); dpDown.classList.toggle("on", charRow<rowInfo.length-1); }
+function loop(){ let busy=false;
+  const dx=tx-charX; if(Math.abs(dx)>=2){ charX+=Math.sign(dx)*Math.min(SPEED,Math.abs(dx)); busy=true; } else charX=tx;
+  const dy=camYT-camY; if(Math.abs(dy)>=2){ camY+=Math.sign(dy)*Math.min(SPEED*2.6,Math.abs(dy)); busy=true; } else camY=camYT;
+  followCam(); render(); updateNav();
+  if(busy){ actors.classList.add("walking"); raf=requestAnimationFrame(loop); } else { actors.classList.remove("walking"); raf=null; } }
+function go(){ if(!raf) raf=requestAnimationFrame(loop); }
+function walkTo(x){ const r=rowInfo[charRow]; tx=Math.max(r.minX,Math.min(r.maxX,x)); go(); }
+function changeRow(d){ const nr=charRow+d; if(nr<0||nr>=rowInfo.length) return; charRow=nr; camYT=rowCamY(nr);
+  const r=rowInfo[nr]; tx=charX=Math.max(r.minX,Math.min(r.maxX,charX)); go(); }
 
 measure();
-if(bays.length){ charX=pos[0].x; tx=charX; followCam(); render(); updateNav(); }
-window.addEventListener("resize", ()=>{ measure(); charX=Math.max(minX,Math.min(maxX,charX)); followCam(); render(); updateNav(); });
+if(rowInfo.length){ charRow=0; charX=tx=rowInfo[0].bays[0]?rowInfo[0].bays[0].x:60; camY=camYT=rowCamY(0); followCam(); render(); updateNav(); }
+window.addEventListener("resize", ()=>{ measure(); const r=rowInfo[charRow]; if(r){ charX=Math.max(r.minX,Math.min(r.maxX,charX)); camYT=rowCamY(charRow); camY=camYT; followCam(); render(); updateNav(); } });
 
-/* Tocar = caminar hacia ahí · deslizar = guiar */
+/* Tap = caminar hacia ahí · deslizar = guiar (sin preventDefault para que el toque al producto abra su ficha) */
 let dragging=false, sxp=0;
 function pcx(e){ return (e.touches?e.touches[0]:e).clientX; }
 function worldX(cx){ const r=world.getBoundingClientRect(); return (cx-r.left)+camX; }
-function down(e){ if(e.target.closest(".actors")||e.target.closest(".nav-arrow")) return; dragging=true; moved=false; sxp=pcx(e); if(e.cancelable&&e.touches) e.preventDefault(); }
-function move(e){ if(!dragging) return; const x=pcx(e); if(Math.abs(x-sxp)>5) moved=true; if(moved) walkTo(worldX(x)); if(e.cancelable&&e.touches) e.preventDefault(); }
+function down(e){ if(e.target.closest(".actors")||e.target.closest(".dpad")) return; dragging=true; moved=false; sxp=pcx(e); }
+function move(e){ if(!dragging) return; const x=pcx(e); if(Math.abs(x-sxp)>5) moved=true; if(moved) walkTo(worldX(x)); }
 function up(){ if(!dragging) return; dragging=false; if(moved){ tx=charX; } }
 world.addEventListener("mousedown", down); window.addEventListener("mousemove", move); window.addEventListener("mouseup", up);
-world.addEventListener("touchstart", down, {passive:false}); world.addEventListener("touchmove", move, {passive:false}); world.addEventListener("touchend", up);
+world.addEventListener("touchstart", down, {passive:true}); world.addEventListener("touchmove", move, {passive:true}); world.addEventListener("touchend", up);
 world.addEventListener("click", e=>{ if(moved) return; if(e.target.closest(".product")||e.target.closest(".actors")) return; walkTo(worldX(e.clientX)); });
 window.addEventListener("keydown", e=>{ const ae=document.activeElement; if(ae && /input|textarea/i.test(ae.tagName)) return;
-  if(e.key==="ArrowRight") goBay(cur+1); else if(e.key==="ArrowLeft") goBay(cur-1); });
-function goBay(i){ if(i<0||i>=bays.length) return; walkTo(pos[i].x); }
-navLeft.addEventListener("click", ()=>goBay(cur-1));
-navRight.addEventListener("click", ()=>goBay(cur+1));
+  if(e.key==="ArrowRight") stepBay(1); else if(e.key==="ArrowLeft") stepBay(-1); else if(e.key==="ArrowUp") changeRow(-1); else if(e.key==="ArrowDown") changeRow(1); });
+function stepBay(d){ const r=rowInfo[charRow]; const ni=cur+d; if(ni<0||ni>=r.bays.length) return; walkTo(r.bays[ni].x); }
+dpLeft.addEventListener("click", ()=>stepBay(-1));
+dpRight.addEventListener("click", ()=>stepBay(1));
+dpUp.addEventListener("click", ()=>changeRow(-1));
+dpDown.addEventListener("click", ()=>changeRow(1));
 
-/* Asesor: caminar al producto */
-function bayOfRack(rackId){ return bays.findIndex(b=>b.dataset.rack===rackId); }
-function teleport(id){ const p=PRODUCTOS.find(x=>x.id===id); if(!p) return; closeChat(); const i=bayOfRack(p.rackId); if(i<0) return;
-  const el=world.querySelector('.product[data-id="'+id+'"]'); let X=pos[i].x;
+/* Asesor / mapa: ir caminando a un pasillo o producto */
+function locateRack(rackId){ for(let r=0;r<rowInfo.length;r++){ const i=rowInfo[r].bays.findIndex(b=>b.rack===rackId); if(i>=0) return {row:r,idx:i}; } return null; }
+function goPasillo(rackId){ closeChat(); const L=locateRack(rackId); if(!L) return; if(L.row!==charRow){ charRow=L.row; camYT=rowCamY(L.row); } walkTo(rowInfo[L.row].bays[L.idx].x); }
+function teleport(id){ const p=PRODUCTOS.find(x=>x.id===id); if(!p) return; closeChat(); const L=locateRack(p.rackId); if(!L) return;
+  if(L.row!==charRow){ charRow=L.row; camYT=rowCamY(L.row); }
+  const el=world.querySelector('.product[data-id="'+id+'"]'); let X=rowInfo[L.row].bays[L.idx].x;
   if(el){ const gr=grid.getBoundingClientRect(), r=el.getBoundingClientRect(); X=(r.left-gr.left)+r.width/2; }
   walkTo(X); document.querySelectorAll(".product.spot").forEach(x=>x.classList.remove("spot"));
   if(el){ el.classList.add("spot"); setTimeout(()=>el.classList.remove("spot"),3200); } }
-function goPasillo(rackId){ closeChat(); const i=bayOfRack(rackId); if(i>=0) goBay(i); }
 
 /* ====== Mapa ====== */
 const scrimM=document.getElementById("scrimM"), mapModal=document.getElementById("mapModal"), mmGrid=document.getElementById("mmGrid");
-const MMCOLS = Math.min(3, Math.max(1, Math.ceil(Math.sqrt(bays.length||1))));
-function buildMap(){ mmGrid.style.gridTemplateColumns=`repeat(${MMCOLS},1fr)`; mmGrid.innerHTML="";
-  bays.forEach((b,i)=>{ const n=PRODUCTOS.filter(p=>p.rackId===b.dataset.rack).length;
-    const t=document.createElement("button"); t.className="mm-tile"+(i===cur?" here":"")+(n===0?" empty":"");
+function buildMap(){ mmGrid.style.gridTemplateColumns=`repeat(${COLS},1fr)`; mmGrid.innerHTML="";
+  bays.forEach((b)=>{ const n=PRODUCTOS.filter(p=>p.rackId===b.dataset.rack).length;
+    const here=(rowInfo[charRow]&&rowInfo[charRow].bays[cur]&&rowInfo[charRow].bays[cur].rack===b.dataset.rack);
+    const t=document.createElement("button"); t.className="mm-tile"+(here?" here":"")+(n===0?" empty":"");
     t.innerHTML=`<span class="pn">P${String(b.dataset.pasillo).padStart(2,"0")}</span><b>${b.dataset.name}</b><small>${n} producto${n===1?"":"s"}</small>`;
-    t.addEventListener("click", ()=>{ closeMap(); goBay(i); }); mmGrid.appendChild(t); }); }
+    t.addEventListener("click", ()=>{ closeMap(); goPasillo(b.dataset.rack); }); mmGrid.appendChild(t); }); }
 function openMap(){ buildMap(); scrimM.classList.add("open"); mapModal.classList.add("open"); }
 function closeMap(){ scrimM.classList.remove("open"); mapModal.classList.remove("open"); }
 document.getElementById("mapBtn").addEventListener("click", openMap);
 document.getElementById("mmClose").addEventListener("click", closeMap);
 scrimM.addEventListener("click", closeMap);
+
+/* Menú de módulos (db.js) desde el botón de arriba */
+document.getElementById("modBtn").addEventListener("click", ()=>{ const m=document.getElementById("ttnav-menu"), o=document.getElementById("ttnav-ov");
+  if(!m){ window.location.href="admin.html"; return; } const on=!m.classList.contains("on"); m.classList.toggle("on",on); if(o) o.classList.toggle("on",on); });
 
 /* ====== Hoja producto ====== */
 const scrim=document.getElementById("scrim"), sheet=document.getElementById("sheet"); let actual=null;
@@ -410,17 +432,16 @@ document.getElementById("advSend").addEventListener("click", sendAdv);
 document.getElementById("advText").addEventListener("keydown", e=>{ if(e.key==="Enter") sendAdv(); });
 function sendAdv(){ const i=document.getElementById("advText"), v=i.value.trim(); if(!v) return; meSay(v); i.value=""; answer(v); }
 
-/* ====== Carrito ====== */
-const Cart=(()=>{ const items=new Map(), btn=document.getElementById("playerCart"), fab=document.getElementById("cartFab"),
-    badge=document.getElementById("cartBadge"), badge2=document.getElementById("cartBadge2");
+/* ====== Carrito (sostenido por el cliente) ====== */
+const Cart=(()=>{ const items=new Map(), btn=document.getElementById("playerCart"), badge=document.getElementById("cartBadge");
   function add(p){ const c=items.get(p.id)||{producto:p,qty:0}; c.qty++; items.set(p.id,c); render(); bump(); beep(); }
   function totalQty(){ let q=0; items.forEach(i=>q+=i.qty); return q; }
-  function render(){ const q=totalQty(); badge.textContent=q; badge.classList.toggle("show",q>0); badge2.textContent=q; badge2.classList.toggle("show",q>0); }
+  function render(){ const q=totalQty(); badge.textContent=q; badge.classList.toggle("show",q>0); }
   function bump(){ btn.classList.remove("bump"); void btn.offsetWidth; btn.classList.add("bump"); }
   function goCaja(){ if(totalQty()===0){ toast("Tu carrito está vacío 🧰"); return; }
     TTDB.setCart([...items.values()].map(i=>({id:i.producto.id,nombre:i.producto.nombre,emoji:i.producto.emoji||"📦",foto:i.producto.foto||"",precio:i.producto.precio,qty:i.qty})));
     window.location.href="caja.html"; }
-  btn.addEventListener("click", e=>{ e.stopPropagation(); goCaja(); }); fab.addEventListener("click", goCaja); render(); return { add }; })();
+  btn.addEventListener("click", e=>{ e.stopPropagation(); goCaja(); }); render(); return { add }; })();
 
 /* ====== Personaje ====== */
 const charSelect=document.getElementById("charSelect"), playerFig=document.getElementById("playerFig");
