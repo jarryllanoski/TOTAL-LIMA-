@@ -67,7 +67,7 @@ button{ font-family:inherit; cursor:pointer; border:none; }
 .ledge{ height:13px; width:100%; background:linear-gradient(180deg,var(--madera),var(--madera-2)); border-radius:3px; box-shadow:0 7px 14px #0007, inset 0 2px 0 #ffffff22; margin:0 0 10px; }
 .bay-empty{ color:#00000055; font-size:12px; padding:24px 14px; }
 
-.product{ width:106px; display:flex; flex-direction:column; gap:5px; cursor:pointer; transform-origin:bottom center; transition:transform .18s ease; background:none; }
+.product{ width:106px; position:relative; display:flex; flex-direction:column; gap:5px; cursor:pointer; transform-origin:bottom center; transition:transform .18s ease; background:none; }
 .product:active{ transform:translateY(-3px) scale(1.04); }
 .product .photo{ height:76px; border-radius:11px; display:grid; place-items:center; font-size:36px; overflow:hidden;
   background:radial-gradient(circle at 50% 35%,#ffffff14,#0000), linear-gradient(160deg,#2f343d,#202329); border:1px solid #ffffff10; box-shadow:var(--sombra); position:relative; }
@@ -106,6 +106,12 @@ button{ font-family:inherit; cursor:pointer; border:none; }
 .advisor .tag{ position:absolute; bottom:-6px; left:50%; transform:translateX(-50%); background:var(--amarillo); color:var(--negro); font-size:9px; font-weight:800; padding:1px 7px; border-radius:99px; white-space:nowrap; box-shadow:0 2px 0 #0005; }
 .advisor .bubble{ position:absolute; bottom:70px; left:50%; transform:translateX(-50%); background:#14161a; color:#fff; border:1px solid #ffffff22; font-size:12px; font-weight:700; padding:6px 11px; border-radius:12px; white-space:nowrap; box-shadow:var(--sombra); }
 .advisor .bubble::after{ content:""; position:absolute; bottom:-6px; left:50%; transform:translateX(-50%); border:6px solid transparent; border-top-color:#14161a; border-bottom:0; }
+.advisor .bubble{ transition:opacity .2s; }
+.advisor .bubble.big{ white-space:normal; width:188px; text-align:center; line-height:1.32; bottom:74px; }
+.advisor .bubble.pop{ animation:bpop .42s ease; }
+@keyframes bpop{ 0%{ transform:translateX(-50%) translateY(10px) scale(.82); opacity:0; } 100%{ transform:translateX(-50%) translateY(0) scale(1); opacity:1; } }
+.point-pin{ position:absolute; left:50%; top:0; z-index:30; font-size:30px; transform:translate(-50%,-115%); pointer-events:none; filter:drop-shadow(0 4px 4px #0007); animation:pinb .7s ease-in-out infinite; }
+@keyframes pinb{ 0%,100%{ transform:translate(-50%,-115%); } 50%{ transform:translate(-50%,-145%); } }
 @keyframes bobup{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-2px) } }
 
 .fig{ position:relative; width:36px; height:66px; flex:0 0 auto; }
@@ -143,6 +149,13 @@ button{ font-family:inherit; cursor:pointer; border:none; }
 .sheet h2{ margin:2px 0 6px; font-size:19px; line-height:1.15; }
 .sheet .price{ font-size:26px; color:var(--amarillo); }
 .sheet .desc{ color:var(--texto-mute); font-size:14px; line-height:1.5; margin:14px 0; }
+.sheet .adv-line{ display:flex; gap:9px; align-items:flex-start; background:#f7b50014; border:1px solid #f7b50033; border-radius:12px; padding:9px 11px; margin:14px 0 4px; font-size:13px; color:var(--texto); line-height:1.42; }
+.sheet .adv-line .who{ color:var(--amarillo); font-weight:800; }
+.sheet .specs{ margin:12px 0 2px; }
+.sheet .specs .sp-h{ font-size:11px; letter-spacing:.1em; color:var(--texto-mute); text-transform:uppercase; margin-bottom:6px; }
+.sheet .specs .sp{ display:flex; justify-content:space-between; gap:12px; padding:8px 0; border-top:1px solid #ffffff14; font-size:13.5px; }
+.sheet .specs .sp:first-of-type{ border-top:0; }
+.sheet .specs .sp .k{ color:var(--texto-mute); } .sheet .specs .sp .v{ font-weight:700; text-align:right; }
 .sheet .actions{ display:flex; gap:10px; }
 .btn-vid{ flex:0 0 auto; background:#0d0f13; color:var(--texto); border:1px solid #2c2f37; border-radius:12px; padding:14px 16px; font-size:14px; }
 .btn-add{ flex:1; background:var(--amarillo); color:var(--negro); border-radius:12px; padding:14px; font-size:16px; font-weight:800; box-shadow:0 4px 0 #0005; }
@@ -240,7 +253,9 @@ button{ font-family:inherit; cursor:pointer; border:none; }
   <div class="grab"></div>
   <div class="sheet-top"><div class="ph" id="sheetPh">🛠️</div>
     <div class="meta"><div class="brandtag signage" id="sheetBrand">TOTAL</div><h2 id="sheetName">Producto</h2><div class="price mono" id="sheetPrice">S/ 0.00</div></div></div>
+  <div class="adv-line"><span style="font-size:18px">👷</span><div><span class="who">Asesor:</span> <span id="sheetAdvLine"></span></div></div>
   <p class="desc" id="sheetDesc"></p>
+  <div class="specs" id="sheetSpecs"></div>
   <div class="actions"><button class="btn-vid" id="sheetVid">▶ Ver video</button><button class="btn-add" id="sheetAdd">Echar al carrito</button></div>
 </div>
 
@@ -392,7 +407,12 @@ function teleport(id){ const p=PRODUCTOS.find(x=>x.id===id); if(!p) return; clos
   const el=world.querySelector('.product[data-id="'+id+'"]'); let X=rowInfo[L.row].bays[L.idx].x;
   if(el){ const gr=grid.getBoundingClientRect(), r=el.getBoundingClientRect(); X=(r.left-gr.left)+r.width/2; }
   walkTo(X); document.querySelectorAll(".product.spot").forEach(x=>x.classList.remove("spot"));
-  if(el){ el.classList.add("spot"); setTimeout(()=>el.classList.remove("spot"),3200); } }
+  document.querySelectorAll(".point-pin").forEach(x=>x.remove());
+  if(el){ el.classList.add("spot");
+    const pin=document.createElement("div"); pin.className="point-pin"; pin.textContent="📍"; el.appendChild(pin);
+    setTimeout(()=>{ el.classList.remove("spot"); pin.remove(); },3600);
+    advSay("👀 Aquí está: <b>"+escH(p.nombre)+"</b>", 4500);
+  } }
 
 /* ====== Mapa ====== */
 const scrimM=document.getElementById("scrimM"), mapModal=document.getElementById("mapModal"), mmGrid=document.getElementById("mmGrid");
@@ -418,6 +438,8 @@ function openSheet(p){ actual=p;
   document.getElementById("sheetPh").innerHTML=p.foto?`<img src="${p.foto}" alt="">`:`<span class="ph-ic">${(p.emoji&&p.emoji!=="📦")?p.emoji:guessIcon(p.nombre)}</span>`;
   document.getElementById("sheetBrand").textContent=p.marca||"TOTAL"; document.getElementById("sheetName").textContent=p.nombre;
   document.getElementById("sheetPrice").textContent=soles(p.precio); document.getElementById("sheetDesc").textContent=p.desc||"";
+  document.getElementById("sheetAdvLine").innerHTML="aquí tienes el <b>"+escH(p.nombre)+"</b>. Estos son sus datos 👇";
+  document.getElementById("sheetSpecs").innerHTML=specsHTML(p);
   scrim.classList.add("open"); sheet.classList.add("open"); }
 function closeSheet(){ scrim.classList.remove("open"); sheet.classList.remove("open"); }
 scrim.addEventListener("click", closeSheet);
@@ -433,6 +455,29 @@ function openChat(){ chat.classList.add("open"); chatCatch.classList.add("open")
 function closeChat(){ chat.classList.remove("open"); chatCatch.classList.remove("open"); }
 chatCatch.addEventListener("click", closeChat); document.getElementById("chatX").addEventListener("click", closeChat);
 document.getElementById("advisor").addEventListener("click", openChat);
+
+/* ====== Asesor: bocadillo, especificaciones y bienvenida ====== */
+function escH(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function cap(s){ s=String(s||""); return s.charAt(0).toUpperCase()+s.slice(1); }
+function advSay(html,ms){ const b=document.getElementById("advBubble"); if(!b) return;
+  b.innerHTML=html; b.classList.add("big","pop"); setTimeout(()=>b.classList.remove("pop"),420);
+  clearTimeout(advSay._t); if(ms) advSay._t=setTimeout(()=>{ b.classList.remove("big"); b.innerHTML="💬 Pregúntame"; },ms); }
+function parseSpecs(name){ const out=[], n=name||""; let m;
+  if(m=n.match(/(\d+(?:\.\d+)?)\s?[wW]\b/)) out.push(["Potencia", m[1]+" W"]);
+  if(m=n.match(/(\d+(?:\.\d+)?)\s?[vV]\b/)) out.push(["Voltaje", m[1]+" V"]);
+  if(m=n.match(/(\d+(?:[.,]\d+)?)\s?(mm|cm|"|m)\b/)) out.push(["Medida", m[1].replace(",",".")+" "+m[2]]);
+  if(m=n.match(/(\d+)\s?(pz|pcs|pzs|piezas?|unid)/i)) out.push(["Piezas", m[1]+" pz"]);
+  return out; }
+function specsHTML(p){ const rack=RACKS.find(r=>r.id===p.rackId), rows=[];
+  if(p.marca) rows.push(["Marca", p.marca]);
+  rows.push(["Precio", soles(p.precio)]);
+  if(rack) rows.push(["Ubicación", "Pasillo "+String(rack.pasillo).padStart(2,"0")+" · "+rack.nombre]);
+  parseSpecs(p.nombre).forEach(s=>rows.push(s));
+  if(p.nivel) rows.push(["Estante", cap(p.nivel)]);
+  let h='<div class="sp-h">Especificaciones</div>';
+  rows.forEach(r=> h+='<div class="sp"><span class="k">'+escH(r[0])+'</span><span class="v">'+escH(String(r[1]))+'</span></div>');
+  return h; }
+setTimeout(()=>advSay("👷 ¡Bienvenido a <b>TOTAL</b>! Si necesitas algo, pregúntame 😊", 7000), 900);
 function topSearch(){ const v=document.getElementById("topSearch").value.trim(); if(!v) return; openChat(); meSay(v); answer(v); document.getElementById("topSearch").value=""; }
 document.getElementById("topSearchBtn").addEventListener("click", topSearch);
 document.getElementById("topSearch").addEventListener("keydown", e=>{ if(e.key==="Enter") topSearch(); });
