@@ -129,6 +129,18 @@ button{ font-family:inherit; cursor:pointer; border:none; }
 .actors.walking .fig .arm.l{ animation:legB .5s linear infinite; } .actors.walking .fig .arm.r{ animation:legA .5s linear infinite; }
 .advisor.point .fig .arm.r{ animation:none !important; transform:rotate(-152deg) !important; }
 .advisor.point .fig .arm.r::after{ content:""; position:absolute; bottom:-3px; left:50%; transform:translateX(-50%); width:9px; height:9px; border-radius:50%; background:var(--skin,#e8b98c); box-shadow:inset -1px -1px 0 #0000001a; }
+/* ---- Vida del asesor ---- */
+.advisor .fig{ animation:idlebob 2.8s ease-in-out infinite; }
+.actors.walking .advisor .fig{ animation:none; }
+@keyframes idlebob{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-1.6px); } }
+.advisor.talk .fig{ animation:talkbob .34s ease-in-out infinite; }
+@keyframes talkbob{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-2.6px); } }
+.advisor.talk .fig .head{ animation:nod .3s ease-in-out infinite; }
+@keyframes nod{ 0%,100%{ transform:translateX(-50%) translateY(0); } 50%{ transform:translateX(-50%) translateY(1.6px); } }
+.advisor.cheer .fig .arm.l{ animation:none !important; transform:rotate(148deg) !important; }
+.advisor.cheer .fig .arm.r{ animation:none !important; transform:rotate(-148deg) !important; }
+.advisor.cheer .fig{ animation:cheerhop .4s ease 2 !important; }
+@keyframes cheerhop{ 0%,100%{ transform:translateY(0); } 40%{ transform:translateY(-8px); } }
 @keyframes legA{ 0%,100%{ transform:rotate(15deg) } 50%{ transform:rotate(-15deg) } }
 @keyframes legB{ 0%,100%{ transform:rotate(-15deg) } 50%{ transform:rotate(15deg) } }
 
@@ -378,7 +390,8 @@ function loop(){ let busy=false;
 function go(){ if(!raf) raf=requestAnimationFrame(loop); }
 function walkTo(x){ const r=rowInfo[charRow]; tx=Math.max(r.minX,Math.min(r.maxX,x)); go(); }
 function changeRow(d){ const nr=charRow+d; if(nr<0||nr>=rowInfo.length) return; charRow=nr; camYT=rowCamY(nr);
-  const r=rowInfo[nr]; tx=charX=Math.max(r.minX,Math.min(r.maxX,charX)); go(); }
+  const r=rowInfo[nr]; tx=charX=Math.max(r.minX,Math.min(r.maxX,charX)); go();
+  const bi=(typeof nearestBayInRow==="function")?nearestBayInRow(nr,charX):0; if(r.bays[bi]) announceBay(r.bays[bi]); }
 
 measure();
 if(rowInfo.length){ charRow=0; charX=tx=rowInfo[0].bays[0]?rowInfo[0].bays[0].x:60; camY=camYT=rowCamY(0); followCam(); render(); updateNav(); }
@@ -396,7 +409,7 @@ world.addEventListener("touchstart", down, {passive:true}); world.addEventListen
 world.addEventListener("click", e=>{ if(moved) return; if(e.target.closest(".product")||e.target.closest(".actors")) return; walkTo(worldX(e.clientX)); });
 window.addEventListener("keydown", e=>{ const ae=document.activeElement; if(ae && /input|textarea/i.test(ae.tagName)) return;
   if(e.key==="ArrowRight") stepBay(1); else if(e.key==="ArrowLeft") stepBay(-1); else if(e.key==="ArrowUp") changeRow(-1); else if(e.key==="ArrowDown") changeRow(1); });
-function stepBay(d){ const r=rowInfo[charRow]; const ni=cur+d; if(ni<0||ni>=r.bays.length) return; walkTo(r.bays[ni].x); }
+function stepBay(d){ const r=rowInfo[charRow]; const ni=cur+d; if(ni<0||ni>=r.bays.length) return; walkTo(r.bays[ni].x); announceBay(r.bays[ni]); }
 dpLeft.addEventListener("click", ()=>stepBay(-1));
 dpRight.addEventListener("click", ()=>stepBay(1));
 dpUp.addEventListener("click", ()=>changeRow(-1));
@@ -404,7 +417,7 @@ dpDown.addEventListener("click", ()=>changeRow(1));
 
 /* Asesor / mapa: ir caminando a un pasillo o producto */
 function locateRack(rackId){ for(let r=0;r<rowInfo.length;r++){ const i=rowInfo[r].bays.findIndex(b=>b.rack===rackId); if(i>=0) return {row:r,idx:i}; } return null; }
-function goPasillo(rackId){ closeChat(); const L=locateRack(rackId); if(!L) return; if(L.row!==charRow){ charRow=L.row; camYT=rowCamY(L.row); } walkTo(rowInfo[L.row].bays[L.idx].x); }
+function goPasillo(rackId){ closeChat(); const L=locateRack(rackId); if(!L) return; if(L.row!==charRow){ charRow=L.row; camYT=rowCamY(L.row); } const b=rowInfo[L.row].bays[L.idx]; walkTo(b.x); announceBay(b); }
 function teleport(id){ const p=PRODUCTOS.find(x=>x.id===id); if(!p) return; closeChat(); const L=locateRack(p.rackId); if(!L) return;
   if(L.row!==charRow){ charRow=L.row; camYT=rowCamY(L.row); }
   const el=world.querySelector('.product[data-id="'+id+'"]'); let X=rowInfo[L.row].bays[L.idx].x;
@@ -444,12 +457,15 @@ function openSheet(p){ actual=p;
   document.getElementById("sheetPrice").textContent=soles(p.precio); document.getElementById("sheetDesc").textContent=p.desc||"";
   document.getElementById("sheetAdvLine").innerHTML="aquí tienes el <b>"+escH(p.nombre)+"</b>. Estos son sus datos 👇";
   document.getElementById("sheetSpecs").innerHTML=specsHTML(p);
-  speak(p.nombre + ". " + (p.desc ? p.desc : (p.marca ? "Marca "+p.marca+"." : "")));
+  const _rk=RACKS.find(r=>r.id===p.rackId);
+  const _loc=_rk?(" Lo encuentras en el pasillo "+String(_rk.pasillo).padStart(2,"0")+", "+_rk.nombre+"."):"";
+  const _pr=p.precio?(" Su precio es "+(soles(p.precio).replace(/S\/\s?/,""))+" soles."):"";
+  speak(pick(["Mira, ","Te muestro ","Buena, aquí tienes "])+p.nombre+". "+(p.desc?p.desc+". ":"")+_pr+_loc+" Si te gusta, échalo al carrito.");
   scrim.classList.add("open"); sheet.classList.add("open"); }
 function closeSheet(){ scrim.classList.remove("open"); sheet.classList.remove("open"); }
 scrim.addEventListener("click", closeSheet);
 document.getElementById("sheetVid").addEventListener("click", ()=>{ if(actual&&actual.video) window.open(actual.video,"_blank"); else toast("🎬 Sin video aún (se agrega en Admin)."); });
-document.getElementById("sheetAdd").addEventListener("click", ()=>{ if(actual){ Cart.add(actual); flyToCart(document.getElementById("sheetPh"), actual.emoji||"📦"); } closeSheet(); });
+document.getElementById("sheetAdd").addEventListener("click", ()=>{ if(actual){ const p=actual; Cart.add(p); flyToCart(document.getElementById("sheetPh"), p.emoji||"📦"); closeSheet(); cheer(p); } else closeSheet(); });
 
 /* ====== Asesor / Buscador ====== */
 const chat=document.getElementById("chat"), chatCatch=document.getElementById("chatCatch"), advMsgs=document.getElementById("advMsgs");
@@ -466,7 +482,10 @@ function escH(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g
 function cap(s){ s=String(s||""); return s.charAt(0).toUpperCase()+s.slice(1); }
 function advSay(html,ms){ const b=document.getElementById("advBubble"); if(!b) return;
   b.innerHTML=html; b.classList.add("big","pop"); setTimeout(()=>b.classList.remove("pop"),420);
+  if(!ttsOn){ talk(true); clearTimeout(talk._t); talk._t=setTimeout(()=>talk(false), 1600); }
   clearTimeout(advSay._t); if(ms) advSay._t=setTimeout(()=>{ b.classList.remove("big"); b.innerHTML="💬 Pregúntame"; },ms); }
+function talk(on){ const a=document.getElementById("advisor"); if(a) a.classList.toggle("talk", !!on); }
+function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
 function parseSpecs(name){ const out=[], n=name||""; let m;
   if(m=n.match(/(\d+(?:\.\d+)?)\s?[wW]\b/)) out.push(["Potencia", m[1]+" W"]);
   if(m=n.match(/(\d+(?:\.\d+)?)\s?[vV]\b/)) out.push(["Voltaje", m[1]+" V"]);
@@ -489,7 +508,8 @@ function loadVoices(){ try{ _voices=window.speechSynthesis.getVoices()||[]; }cat
 if("speechSynthesis" in window){ loadVoices(); try{ window.speechSynthesis.addEventListener("voiceschanged", loadVoices); }catch(e){} }
 function esVoice(){ return _voices.find(v=>/^es[-_]?(pe|419|mx|us)/i.test(v.lang)) || _voices.find(v=>/^es/i.test(v.lang)) || null; }
 function speak(t){ if(!ttsOn || !("speechSynthesis" in window) || !t) return;
-  try{ const u=new SpeechSynthesisUtterance(String(t)); u.lang="es-ES"; u.rate=1.03; u.pitch=1; const v=esVoice(); if(v) u.voice=v;
+  try{ const u=new SpeechSynthesisUtterance(String(t)); u.lang="es-ES"; u.rate=1.04; u.pitch=1.02; const v=esVoice(); if(v) u.voice=v;
+    u.onstart=()=>talk(true); u.onend=()=>talk(false); u.onerror=()=>talk(false);
     window.speechSynthesis.cancel(); window.speechSynthesis.speak(u); }catch(e){} }
 const voiceBtn=document.getElementById("voiceBtn");
 function paintVoice(){ if(voiceBtn) voiceBtn.textContent = ttsOn ? "🔊" : "🔇"; }
@@ -499,7 +519,25 @@ if(voiceBtn) voiceBtn.addEventListener("click", ()=>{ ttsOn=!ttsOn; localStorage
 
 /* Bienvenida: bocadillo al cargar + voz en el primer toque */
 setTimeout(()=>advSay("👷 ¡Bienvenido a <b>TOTAL</b>! Si necesitas algo, pregúntame 😊", 7000), 900);
-window.addEventListener("pointerdown", ()=>{ speak("¡Bienvenido a TOTAL! Si necesitas algo, pregúntame."); }, {once:true});
+window.addEventListener("pointerdown", ()=>{ speak("¡Bienvenido a TOTAL! Soy tu asesor. Si necesitas algo, pregúntame."); }, {once:true});
+
+/* ---- Reacciones a lo que hace el cliente ---- */
+function cheer(p){ const a=document.getElementById("advisor"); if(a){ a.classList.add("cheer"); setTimeout(()=>a.classList.remove("cheer"),1500); }
+  advSay(pick(["🛒 ¡Buena elección!","🛒 ¡Excelente!","🛒 ¡Ese te va a servir!","🛒 ¡Buen ojo!"])+" Lo eché a tu carrito.", 4200);
+  speak(pick(["¡Buena elección!","¡Excelente!","¡Buen ojo!","¡Ese se vende un montón!"])+" Agregué "+(p?p.nombre:"el producto")+" a tu carrito."); }
+
+let _lastSec=null;
+function announceBay(b){ if(!b||_lastSec===b.rack) return; _lastSec=b.rack;
+  const n=PRODUCTOS.filter(x=>x.rackId===b.rack).length;
+  advSay("📍 <b>"+escH((b.name||"").toUpperCase())+"</b> · Pasillo "+String(b.pasillo).padStart(2,"0"), 3600);
+  speak(pick(["Estás en ","Llegamos a ","Este es el pasillo de "])+(b.name||"")+". Tengo "+n+(n===1?" producto":" productos")+" aquí. Dime qué buscas y te lo señalo."); }
+
+/* ---- Consejos cuando se queda quieto ---- */
+let _idleT=null;
+function idleTip(){ advSay(pick(["💬 ¿Buscas algo? Pregúntame.","💬 Dime qué necesitas y te llevo.","💬 Tengo de todo, ¿qué herramienta buscas?"]), 4200);
+  speak(pick(["¿Buscas algo en especial? Pregúntame y te llevo.","Dime qué necesitas y te muestro dónde está.","¿Te ayudo a encontrar alguna herramienta?"])); resetIdle(); }
+function resetIdle(){ clearTimeout(_idleT); _idleT=setTimeout(idleTip, 28000); }
+window.addEventListener("pointerdown", resetIdle, true); resetIdle();
 function topSearch(){ const v=document.getElementById("topSearch").value.trim(); if(!v) return; openChat(); meSay(v); answer(v); document.getElementById("topSearch").value=""; }
 document.getElementById("topSearchBtn").addEventListener("click", topSearch);
 document.getElementById("topSearch").addEventListener("keydown", e=>{ if(e.key==="Enter") topSearch(); });
