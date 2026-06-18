@@ -127,6 +127,8 @@ button{ font-family:inherit; cursor:pointer; border:none; }
 .fig .leg.l{ left:8px; } .fig .leg.r{ right:8px; }
 .actors.walking .fig .leg.l{ animation:legA .5s linear infinite; } .actors.walking .fig .leg.r{ animation:legB .5s linear infinite; }
 .actors.walking .fig .arm.l{ animation:legB .5s linear infinite; } .actors.walking .fig .arm.r{ animation:legA .5s linear infinite; }
+.advisor.point .fig .arm.r{ animation:none !important; transform:rotate(-152deg) !important; }
+.advisor.point .fig .arm.r::after{ content:""; position:absolute; bottom:-3px; left:50%; transform:translateX(-50%); width:9px; height:9px; border-radius:50%; background:var(--skin,#e8b98c); box-shadow:inset -1px -1px 0 #0000001a; }
 @keyframes legA{ 0%,100%{ transform:rotate(15deg) } 50%{ transform:rotate(-15deg) } }
 @keyframes legB{ 0%,100%{ transform:rotate(-15deg) } 50%{ transform:rotate(15deg) } }
 
@@ -217,6 +219,7 @@ button{ font-family:inherit; cursor:pointer; border:none; }
   <div class="brand"><a class="logo signage" href="admin.html" aria-label="Abrir panel Admin">T</a><div class="name"><b class="signage">TOTAL TOOLS</b><span>FERRETERÍA</span></div></div>
   <button class="hdr-btn" id="modBtn" aria-label="Módulos (Admin / Caja)">⊞</button>
   <button class="map-btn" id="mapBtn" aria-label="Ver toda la tienda">🗺️</button>
+  <button class="map-btn" id="voiceBtn" aria-label="Voz del asesor">🔊</button>
   <div class="top-search"><input id="topSearch" placeholder="Buscar herramientas…" autocomplete="off" /><button id="topSearchBtn" aria-label="Buscar">🔍</button></div>
 </header>
 
@@ -410,8 +413,9 @@ function teleport(id){ const p=PRODUCTOS.find(x=>x.id===id); if(!p) return; clos
   document.querySelectorAll(".point-pin").forEach(x=>x.remove());
   if(el){ el.classList.add("spot");
     const pin=document.createElement("div"); pin.className="point-pin"; pin.textContent="📍"; el.appendChild(pin);
+    const adv=document.getElementById("advisor"); if(adv){ adv.classList.add("point"); setTimeout(()=>adv.classList.remove("point"),3600); }
     setTimeout(()=>{ el.classList.remove("spot"); pin.remove(); },3600);
-    advSay("👀 Aquí está: <b>"+escH(p.nombre)+"</b>", 4500);
+    advSay("👀 Aquí está: <b>"+escH(p.nombre)+"</b>", 4500); speak("Aquí está, "+p.nombre);
   } }
 
 /* ====== Mapa ====== */
@@ -440,6 +444,7 @@ function openSheet(p){ actual=p;
   document.getElementById("sheetPrice").textContent=soles(p.precio); document.getElementById("sheetDesc").textContent=p.desc||"";
   document.getElementById("sheetAdvLine").innerHTML="aquí tienes el <b>"+escH(p.nombre)+"</b>. Estos son sus datos 👇";
   document.getElementById("sheetSpecs").innerHTML=specsHTML(p);
+  speak(p.nombre + ". " + (p.desc ? p.desc : (p.marca ? "Marca "+p.marca+"." : "")));
   scrim.classList.add("open"); sheet.classList.add("open"); }
 function closeSheet(){ scrim.classList.remove("open"); sheet.classList.remove("open"); }
 scrim.addEventListener("click", closeSheet);
@@ -477,7 +482,24 @@ function specsHTML(p){ const rack=RACKS.find(r=>r.id===p.rackId), rows=[];
   let h='<div class="sp-h">Especificaciones</div>';
   rows.forEach(r=> h+='<div class="sp"><span class="k">'+escH(r[0])+'</span><span class="v">'+escH(String(r[1]))+'</span></div>');
   return h; }
+/* ---- Voz (TTS) del asesor ---- */
+let ttsOn = (localStorage.getItem("tt_voice")!=="0");
+let _voices=[];
+function loadVoices(){ try{ _voices=window.speechSynthesis.getVoices()||[]; }catch(e){} }
+if("speechSynthesis" in window){ loadVoices(); try{ window.speechSynthesis.addEventListener("voiceschanged", loadVoices); }catch(e){} }
+function esVoice(){ return _voices.find(v=>/^es[-_]?(pe|419|mx|us)/i.test(v.lang)) || _voices.find(v=>/^es/i.test(v.lang)) || null; }
+function speak(t){ if(!ttsOn || !("speechSynthesis" in window) || !t) return;
+  try{ const u=new SpeechSynthesisUtterance(String(t)); u.lang="es-ES"; u.rate=1.03; u.pitch=1; const v=esVoice(); if(v) u.voice=v;
+    window.speechSynthesis.cancel(); window.speechSynthesis.speak(u); }catch(e){} }
+const voiceBtn=document.getElementById("voiceBtn");
+function paintVoice(){ if(voiceBtn) voiceBtn.textContent = ttsOn ? "🔊" : "🔇"; }
+paintVoice();
+if(voiceBtn) voiceBtn.addEventListener("click", ()=>{ ttsOn=!ttsOn; localStorage.setItem("tt_voice", ttsOn?"1":"0"); paintVoice();
+  if(ttsOn) speak("Voz activada"); else { try{ window.speechSynthesis.cancel(); }catch(e){} toast("🔇 Voz desactivada"); } });
+
+/* Bienvenida: bocadillo al cargar + voz en el primer toque */
 setTimeout(()=>advSay("👷 ¡Bienvenido a <b>TOTAL</b>! Si necesitas algo, pregúntame 😊", 7000), 900);
+window.addEventListener("pointerdown", ()=>{ speak("¡Bienvenido a TOTAL! Si necesitas algo, pregúntame."); }, {once:true});
 function topSearch(){ const v=document.getElementById("topSearch").value.trim(); if(!v) return; openChat(); meSay(v); answer(v); document.getElementById("topSearch").value=""; }
 document.getElementById("topSearchBtn").addEventListener("click", topSearch);
 document.getElementById("topSearch").addEventListener("keydown", e=>{ if(e.key==="Enter") topSearch(); });
