@@ -77,6 +77,12 @@ input,select,textarea{ font-family:inherit; }
 .field input, .field select, .field textarea{ width:100%; background:var(--bg2); color:var(--txt);
   border:1px solid var(--border); border-radius:11px; padding:12px; font-size:15px; outline:none; }
 .field input:focus, .field select:focus, .field textarea:focus{ border-color:var(--blue); }
+.foto-row{ display:flex; gap:12px; align-items:center; margin-bottom:8px; }
+.foto-prev{ width:64px; height:64px; flex:0 0 auto; border-radius:12px; background:var(--bg2); border:1px solid var(--border); display:grid; place-items:center; overflow:hidden; font-size:26px; color:#5d6675; }
+.foto-prev img{ width:100%; height:100%; object-fit:cover; }
+.foto-actions{ display:flex; gap:8px; flex-wrap:wrap; }
+.btn-foto{ display:inline-block; background:var(--blue); color:#fff; font-weight:700; font-size:13px; padding:9px 13px; border-radius:10px; border:none; cursor:pointer; }
+.btn-foto.clr{ background:var(--bg2); color:var(--txt); border:1px solid var(--border); }
 .field textarea{ resize:vertical; min-height:70px; }
 
 .toggle{ display:flex; align-items:center; justify-content:space-between; gap:10px;
@@ -263,7 +269,17 @@ input,select,textarea{ font-family:inherit; }
     <div class="field"><label>Nivel</label><select id="fNivel"></select></div>
   </div>
   <div class="row">
-    <div class="field"><label>Foto (URL, opcional)</label><input id="fFoto" placeholder="https://…  (luego Firebase Storage)" /></div>
+    <div class="field"><label>Foto del producto</label>
+      <div class="foto-row">
+        <div class="foto-prev" id="fFotoPrev">🖼️</div>
+        <div class="foto-actions">
+          <label class="btn-foto" for="fFotoFile">📷 Subir del celular</label>
+          <input id="fFotoFile" type="file" accept="image/*" hidden />
+          <button type="button" class="btn-foto clr" id="fFotoClear">Quitar</button>
+        </div>
+      </div>
+      <input id="fFoto" placeholder="o pega una URL https://…" />
+    </div>
   </div>
   <div class="row">
     <div class="field"><label>Video (URL, opcional)</label><input id="fVideo" placeholder="https://…" /></div>
@@ -495,12 +511,26 @@ function openProd(id){
   $("#sheetProdTitle").textContent = id ? "Editar producto" : "Nuevo producto";
   renderEmojiPick(p.emoji);
   $("#fNombre").value=p.nombre; $("#fMarca").value=p.marca||""; $("#fPrecio").value=p.precio;
-  $("#fFoto").value=p.foto||""; $("#fVideo").value=p.video||""; $("#fDesc").value=p.desc||"";
+  $("#fFoto").value=p.foto||""; $("#fVideo").value=p.video||""; $("#fDesc").value=p.desc||""; paintFotoPrev();
   fillRackSelect(p.rackId, p.nivel);
   $("#delProd").style.display = id ? "block" : "none";
   openSheet("#sheetProd");
 }
 $("#btnNew").addEventListener("click", ()=>openProd(null));
+/* ---- Foto local: subir desde el celular, comprimir y previsualizar ---- */
+function paintFotoPrev(){ const v=($("#fFoto").value||"").trim(), el=$("#fFotoPrev"); if(!el) return;
+  if(v){ el.innerHTML=""; const im=new Image(); im.alt=""; im.src=v; el.appendChild(im); } else { el.textContent="🖼️"; } }
+function fileToDataURL(file, maxW){ return new Promise((res,rej)=>{ const img=new Image(), url=URL.createObjectURL(file);
+  img.onload=()=>{ const sc=Math.min(1, maxW/(img.width||maxW)), w=Math.max(1,Math.round(img.width*sc)), h=Math.max(1,Math.round(img.height*sc));
+    const c=document.createElement("canvas"); c.width=w; c.height=h; c.getContext("2d").drawImage(img,0,0,w,h);
+    URL.revokeObjectURL(url); try{ res(c.toDataURL("image/jpeg",0.72)); }catch(e){ rej(e); } };
+  img.onerror=()=>{ URL.revokeObjectURL(url); rej(new Error("img")); }; img.src=url; }); }
+$("#fFotoFile").addEventListener("change", async (e)=>{ const f=e.target.files&&e.target.files[0]; e.target.value=""; if(!f) return;
+  try{ const d=await fileToDataURL(f, 480); $("#fFoto").value=d; paintFotoPrev();
+    toast(d.length>700000 ? "⚠️ Foto algo pesada (igual sirve)" : "📷 Foto lista"); }
+  catch(_){ toast("No se pudo leer la imagen"); } });
+$("#fFotoClear").addEventListener("click", ()=>{ $("#fFoto").value=""; paintFotoPrev(); });
+$("#fFoto").addEventListener("input", paintFotoPrev);
 $("#saveProd").addEventListener("click", () => {
   if(!$("#fNombre").value.trim()) return toast("Ponle un nombre al producto");
   const data = {
@@ -511,7 +541,8 @@ $("#saveProd").addEventListener("click", () => {
   };
   if(editProdId){ Object.assign(DB.productos().find(x=>x.id===editProdId), data); }
   else { DB.productos().push({ id:DB.uid("p"), ...data }); }
-  DB.save(); closeSheet("#sheetProd"); renderProductos(); renderConfig(); toast("✔️ Producto guardado");
+  try{ DB.save(); }catch(err){ toast("⚠️ Almacenamiento lleno. Usa fotos más livianas o menos imágenes."); return; }
+  closeSheet("#sheetProd"); renderProductos(); renderConfig(); toast("✔️ Producto guardado");
 });
 $("#delProd").addEventListener("click", () => {
   if(!editProdId) return;
