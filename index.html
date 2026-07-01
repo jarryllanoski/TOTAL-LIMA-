@@ -236,7 +236,7 @@ body.nocrew .actors{ display:none; }
 <body>
 
 <header class="topbar">
-  <div class="brand"><a class="logo signage" href="admin.html" aria-label="Abrir panel Admin">T</a><div class="name"><b class="signage">TOTAL TOOLS</b><span>FERRETERÍA</span></div></div>
+  <div class="brand"><a class="logo signage" href="admin.html#config" aria-label="Abrir mis configuraciones">T</a><div class="name"><b class="signage">TOTAL TOOLS</b><span>FERRETERÍA</span></div></div>
   <button class="hdr-btn" id="modBtn" aria-label="Módulos (Admin / Caja)">⊞</button>
   <button class="map-btn" id="mapBtn" aria-label="Ver toda la tienda">🗺️</button>
   <button class="map-btn" id="voiceBtn" aria-label="Voz del asesor">🔊</button>
@@ -406,6 +406,7 @@ function changeRow(d){ const nr=charRow+d; if(nr<0||nr>=rowInfo.length) return; 
 
 measure();
 if(rowInfo.length){ charRow=0; charX=tx=rowInfo[0].bays[0]?rowInfo[0].bays[0].x:60; camY=camYT=rowCamY(0); followCam(); render(); updateNav(); }
+(function(){ const m=(location.hash||"").match(/go=([\w-]+)/); if(m){ setTimeout(()=>{ try{ goPasillo(m[1]); }catch(e){} }, 550); } })();
 window.addEventListener("resize", ()=>{ measure(); const r=rowInfo[charRow]; if(r){ charX=Math.max(r.minX,Math.min(r.maxX,charX)); camYT=rowCamY(charRow); camY=camYT; followCam(); render(); updateNav(); } });
 
 /* Tap = caminar hacia ahí · deslizar = guiar (sin preventDefault para que el toque al producto abra su ficha) */
