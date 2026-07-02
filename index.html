@@ -56,7 +56,7 @@ button{ font-family:inherit; cursor:pointer; border:none; }
     radial-gradient(150% 100% at 50% 48%, #0000 58%, #00000066 100%); }
 .world{ position:absolute; inset:0; overflow:hidden; cursor:pointer; touch-action:none; z-index:1;
   background:repeating-linear-gradient(0deg,#f7b5001a 0 3px,#0000 3px 30px), repeating-linear-gradient(90deg,#f7b5001a 0 3px,#0000 3px 30px), linear-gradient(#1c2026,#15171c); }
-.store-grid{ position:absolute; top:0; left:0; transform-origin:0 0; will-change:transform; display:flex; flex-direction:column; gap:120px; padding:18px max(28px, calc(50vw - 62px)) 0; }
+.store-grid{ position:absolute; top:0; left:0; transform-origin:0 0; will-change:transform; display:flex; flex-direction:column; gap:120px; padding:18px calc(25vw + 17px) 0; }
 .corridor{ display:flex; align-items:flex-start; gap:46px; }
 
 .bay{ position:relative; flex:0 0 auto; background:radial-gradient(circle at center,#0000 2px,#00000022 3px) 0 0/22px 22px, linear-gradient(180deg,var(--pegboard),var(--pegboard-2));
@@ -67,15 +67,15 @@ button{ font-family:inherit; cursor:pointer; border:none; }
 .ledge{ height:13px; width:100%; background:linear-gradient(180deg,var(--madera),var(--madera-2)); border-radius:3px; box-shadow:0 7px 14px #0007, inset 0 2px 0 #ffffff22; margin:0 0 10px; }
 .bay-empty{ color:#00000055; font-size:12px; padding:24px 14px; }
 
-.product{ width:106px; position:relative; display:flex; flex-direction:column; gap:5px; cursor:pointer; transform-origin:bottom center; transition:transform .18s ease; background:none; }
+.product{ width:calc(50vw - 34px); position:relative; display:flex; flex-direction:column; gap:6px; cursor:pointer; transform-origin:bottom center; transition:transform .18s ease; background:none; }
 .product:active{ transform:translateY(-3px) scale(1.04); }
-.product .photo{ height:76px; border-radius:11px; display:grid; place-items:center; font-size:36px; overflow:hidden;
+.product .photo{ aspect-ratio:1/1; height:auto; border-radius:13px; display:grid; place-items:center; font-size:clamp(36px,13vw,72px); overflow:hidden;
   background:radial-gradient(circle at 50% 35%,#ffffff14,#0000), linear-gradient(160deg,#2f343d,#202329); border:1px solid #ffffff10; box-shadow:var(--sombra); position:relative; }
 .product .photo img{ width:100%; height:100%; object-fit:contain; background:#fff; }
 .product .photo .vid{ position:absolute; top:5px; right:5px; font-size:10px; background:#000a; color:#fff; padding:2px 6px; border-radius:6px; }
-.product .pname{ font-size:11px; line-height:1.15; min-height:26px; max-height:40px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; color:#1a1a1a; font-weight:700; }
+.product .pname{ font-size:clamp(11px,3.4vw,15px); line-height:1.18; min-height:26px; max-height:44px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; color:#1a1a1a; font-weight:700; }
 .product .photo .ph-ic{ filter:drop-shadow(0 4px 6px #0006); }
-.product .ptag{ align-self:flex-start; background:var(--amarillo); color:var(--negro); font-size:12px; padding:2px 8px; border-radius:6px; font-weight:700; box-shadow:0 2px 0 #0005; }
+.product .ptag{ align-self:flex-start; background:var(--amarillo); color:var(--negro); font-size:clamp(12px,3.4vw,15px); padding:2px 9px; border-radius:6px; font-weight:700; box-shadow:0 2px 0 #0005; }
 .product.spot .photo{ box-shadow:0 0 0 3px var(--amarillo), 0 0 26px #f7b50099, var(--sombra); animation:spot 1.4s ease 2; }
 @keyframes spot{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-8px); } }
 
@@ -237,7 +237,6 @@ body.nocrew .actors{ display:none; }
 
 <header class="topbar">
   <div class="brand"><a class="logo signage" href="admin.html#config" aria-label="Abrir mis configuraciones">T</a><div class="name"><b class="signage">TOTAL TOOLS</b><span>FERRETERÍA</span></div></div>
-  <button class="hdr-btn" id="modBtn" aria-label="Módulos (Admin / Caja)">⊞</button>
   <button class="map-btn" id="mapBtn" aria-label="Ver toda la tienda">🗺️</button>
   <button class="map-btn" id="voiceBtn" aria-label="Voz del asesor">🔊</button>
   <button class="map-btn" id="crewBtn" aria-label="Mostrar u ocultar personajes">🧍</button>
@@ -457,10 +456,6 @@ document.getElementById("mapBtn").addEventListener("click", openMap);
 document.getElementById("mmClose").addEventListener("click", closeMap);
 scrimM.addEventListener("click", closeMap);
 
-/* Menú de módulos (db.js) desde el botón de arriba */
-document.getElementById("modBtn").addEventListener("click", ()=>{ const m=document.getElementById("ttnav-menu"), o=document.getElementById("ttnav-ov");
-  if(!m){ window.location.href="admin.html"; return; } const on=!m.classList.contains("on"); m.classList.toggle("on",on); if(o) o.classList.toggle("on",on); });
-
 /* ====== Hoja producto ====== */
 const scrim=document.getElementById("scrim"), sheet=document.getElementById("sheet"); let actual=null;
 function openSheet(p){ actual=p;
@@ -532,11 +527,29 @@ let ttsOn = (localStorage.getItem("tt_voice")!=="0");
 let _voices=[];
 function loadVoices(){ try{ _voices=window.speechSynthesis.getVoices()||[]; }catch(e){} }
 if("speechSynthesis" in window){ loadVoices(); try{ window.speechSynthesis.addEventListener("voiceschanged", loadVoices); }catch(e){} }
-function esVoice(){ return _voices.find(v=>/^es[-_]?(pe|419|mx|us)/i.test(v.lang)) || _voices.find(v=>/^es/i.test(v.lang)) || null; }
+function esVoice(){
+  const score=v=>{ let s=0; const n=(v.name||"")+" "+(v.voiceURI||"");
+    if(/es[-_]?(pe|419|us|mx)/i.test(v.lang)) s+=4; else if(/^es/i.test(v.lang)) s+=2;
+    if(/natural|neural|online/i.test(n)) s+=4;
+    if(/google/i.test(n)) s+=3;
+    if(/paulina|monica|mónica|helena|sabina|luciana|camila|isabela/i.test(n)) s+=2;
+    return s; };
+  let best=null,bs=-1; for(const v of _voices){ if(!/^es/i.test(v.lang)) continue; const s=score(v); if(s>bs){ bs=s; best=v; } }
+  return best; }
 function speak(t){ if(!ttsOn || !("speechSynthesis" in window) || !t) return;
-  try{ const u=new SpeechSynthesisUtterance(String(t)); u.lang="es-ES"; u.rate=1.04; u.pitch=1.02; const v=esVoice(); if(v) u.voice=v;
-    u.onstart=()=>talk(true); u.onend=()=>talk(false); u.onerror=()=>talk(false);
-    window.speechSynthesis.cancel(); window.speechSynthesis.speak(u); }catch(e){} }
+  try{
+    const clean=String(t).replace(/\s+/g," ").trim(); if(!clean) return;
+    const parts=clean.match(/[^.!?…]+[.!?…]*/g)||[clean];
+    window.speechSynthesis.cancel();
+    const v=esVoice(); let first=true;
+    parts.forEach((frase,i)=>{
+      const u=new SpeechSynthesisUtterance(frase.trim());
+      u.lang=(v&&v.lang)||"es-US"; u.rate=0.96; u.pitch=1.04; if(v) u.voice=v;
+      if(first){ u.onstart=()=>talk(true); first=false; }
+      if(i===parts.length-1){ u.onend=()=>talk(false); u.onerror=()=>talk(false); }
+      window.speechSynthesis.speak(u);
+    });
+  }catch(e){} }
 const voiceBtn=document.getElementById("voiceBtn");
 function paintVoice(){ if(voiceBtn) voiceBtn.textContent = ttsOn ? "🔊" : "🔇"; }
 paintVoice();

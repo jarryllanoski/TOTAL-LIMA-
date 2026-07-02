@@ -64,6 +64,7 @@
      MENÚ DE MÓDULOS  (se inyecta en cada página)
      ============================================================ */
   function injectNav() {
+    return; /* Menú flotante desactivado: la navegación es T → Config, pestañas del panel y "Ver tienda". */
     if (document.getElementById("ttnav-btn")) return;
     var page = (location.pathname.split("/").pop() || "index.html").toLowerCase();
     var cur = page.indexOf("admin") >= 0 ? "admin" : page.indexOf("caja") >= 0 ? "caja" : page.indexOf("diseno") >= 0 ? "diseno" : page.indexOf("plano") >= 0 ? "plano" : "tienda";

@@ -185,6 +185,7 @@ input,select,textarea{ font-family:inherit; }
   <button class="tab active" data-tab="config">⚙️ Config</button>
   <button class="tab" data-tab="productos">📦 Productos</button>
   <a class="tab" href="diseno.html">🧱 Diseño</a>
+  <a class="tab" href="plano.html">🏬 Plano</a>
   <a class="tab" href="caja.html">🧾 Caja</a>
 </nav>
 
@@ -343,6 +344,7 @@ document.querySelectorAll(".tab[data-tab]").forEach(t => t.addEventListener("cli
   t.classList.add("active");
   $("#panel-"+t.dataset.tab).classList.add("active");
 }));
+(function(){ const h=(location.hash||"").replace("#",""); if(h){ const t=document.querySelector('.tab[data-tab="'+h+'"]'); if(t) t.click(); } })();
 
 /* ============================================================
    CONFIG
